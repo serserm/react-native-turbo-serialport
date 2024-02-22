@@ -1,0 +1,75 @@
+{
+  "name": "@serserm/react-native-turbo-serialport",
+  "version": "0.1.0",
+  "description": "React Native - Usb Serial Port Communication For Android Platform",
+  "author": "serserm (https://github.com/serserm)",
+  "license": "MIT",
+  "main": "lib/commonjs/index",
+  "module": "lib/module/index",
+  "types": "lib/typescript/src/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "*.podspec",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": " https://registry.npmjs.org"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/serserm/react-native-turbo-serialport.git"
+  },
+  "bugs": {
+    "url": "https://github.com/serserm/react-native-turbo-serialport/issues"
+  },
+  "homepage": "https://github.com/serserm/react-native-turbo-serialport#readme",
+  "scripts": {
+    "clean": "del-cli android/build lib",
+    "pod": "npx pod-install",
+    "build": "bob build"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  },
+  "codegenConfig": {
+    "name": "RNTurboSerialportSpec",
+    "type": "modules",
+    "jsSrcsDir": "src"
+  }
+}

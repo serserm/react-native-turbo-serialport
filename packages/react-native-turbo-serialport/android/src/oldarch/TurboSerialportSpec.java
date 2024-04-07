@@ -12,8 +12,4 @@ abstract class TurboSerialportSpec extends ReactContextBaseJavaModule {
   public abstract void addListener(String eventName);
 
   public abstract void removeListeners(double count);
-
-  public abstract void send();
-
-  public abstract void state(Promise promise);
 }

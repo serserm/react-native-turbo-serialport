@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 import { LINKING_ERROR } from './errors';
 
@@ -9,13 +9,14 @@ const TurboSerialportModule = isTurboModuleEnabled
   ? require('./NativeTurboSerialport').default
   : NativeModules.TurboSerialport;
 
-export const TurboSerialport = TurboSerialportModule
-  ? TurboSerialportModule
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
+export const TurboSerialport =
+  Platform.OS === 'android' && TurboSerialportModule
+    ? TurboSerialportModule
+    : new Proxy(
+        {},
+        {
+          get() {
+            throw new Error(LINKING_ERROR);
+          },
         },
-      },
-    );
+      );

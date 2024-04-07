@@ -1,18 +1,14 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useSerialport } from '@serserm/react-native-turbo-serialport';
 
 export default function App() {
-  const sensor = useSerialport({
+  useSerialport({
     onChange: event => {
       console.log('list', event);
     },
   });
-
-  useEffect(() => {
-    sensor.send();
-  }, []);
 
   return (
     <View style={styles.container}>

@@ -1,10 +1,7 @@
 module.exports = {
   root: true,
   env: {
-    browser: true,
     es2021: true,
-    node: true,
-    commonjs: true,
     'react-native/react-native': true,
   },
   plugins: [

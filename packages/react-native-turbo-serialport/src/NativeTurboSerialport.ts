@@ -5,10 +5,6 @@ export interface Spec extends TurboModule {
   addListener(eventName: string): void;
 
   removeListeners(count: number): void;
-
-  send(): void;
-
-  state(): Promise<object>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('TurboSerialport');

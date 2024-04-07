@@ -1,37 +1,21 @@
-import { useEffect } from 'react';
-import { NativeEventEmitter } from 'react-native';
+import { useEffect, useRef } from 'react';
 
-import { TurboSerialport } from './TurboSerialport';
+import { Serialport } from './Serialport';
+import type { SerialportParamsType } from './types';
+import type { UseSerialportType } from './types/UseSerialportType';
 
-export function useSerialport(params: { onChange?: (data: any) => void }): {
-  send: () => void;
-  state: () => void;
-} {
-  const { onChange } = params || {};
+export function useSerialport(params: SerialportParamsType): UseSerialportType {
+  const serialport = useRef<Serialport>(new Serialport());
 
   useEffect(() => {
-    const eventEmitter = new NativeEventEmitter(TurboSerialport);
-
-    const eventListener =
-      onChange && eventEmitter.addListener(`serialportChange`, onChange);
+    serialport.current.startListening((data: any) => {
+      params.onChange?.(data);
+    });
 
     return () => {
-      eventListener?.remove();
+      serialport.current.stopListening();
     };
   }, []);
 
-  function send() {
-    TurboSerialport.send();
-  }
-
-  function state() {
-    TurboSerialport.state().then((res: object) => {
-      console.log('res', res);
-    });
-  }
-
-  return {
-    send,
-    state,
-  };
+  return {};
 }

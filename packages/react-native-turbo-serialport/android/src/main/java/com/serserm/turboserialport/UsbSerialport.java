@@ -93,6 +93,7 @@ public class UsbSerialport {
         }
         break;
         case Definitions.ACTION_USB_PERMISSION: {
+          UsbDevice device = intent.getExtras().getParcelable(UsbManager.EXTRA_DEVICE);
           boolean granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
           startConnection(device, granted);
         }

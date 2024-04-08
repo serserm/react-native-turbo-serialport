@@ -132,8 +132,6 @@ public class UsbSerialport {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
         map.putString("manufacturerName", device.getManufacturerName());
         map.putString("productName", device.getProductName());
-        /* if the app targets SDK >= android.os.Build.VERSION_CODES.Q and the app does not have permission to read from the device. */
-        map.putString("serialNumber", device.getSerialNumber());
       }
     } catch  (SecurityException e) {
 //      Log.e(TurboSerialportModule.NAME, e.toString());
@@ -169,7 +167,8 @@ public class UsbSerialport {
   }
 
   private void requestUserPermission(UsbDevice device) {
-    PendingIntent mPendingIntent = PendingIntent.getBroadcast(reactContext, 0 , new Intent(Definitions.ACTION_USB_PERMISSION), 0);
+    int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_IMMUTABLE : 0;
+    PendingIntent mPendingIntent = PendingIntent.getBroadcast(reactContext, 0 , new Intent(Definitions.ACTION_USB_PERMISSION), flags);
     usbManager.requestPermission(device, mPendingIntent);
   }
 

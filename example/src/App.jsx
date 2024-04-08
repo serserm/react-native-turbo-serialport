@@ -1,25 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { useSerialport } from '@serserm/react-native-turbo-serialport';
 
 export default function App() {
   const serialport = useSerialport({
-    onChange: event => {
-      console.log('list', event);
+    onError: event => {
+      Alert.alert('Error', event.errorMessage);
+    },
+    onConnected: event => {
+      Alert.alert('Connected', event.data);
     },
   });
-  const [length, setLength] = useState(-1);
+  const [device, setDevice] = useState('');
 
   useEffect(() => {
     serialport.listDevices().then(res => {
-      setLength(res?.length);
+      if (res?.length) {
+        const {
+          isSupported,
+          deviceId,
+          deviceName,
+          manufacturerName,
+          productName,
+          serialNumber,
+        } = res[0];
+        setDevice(
+          `${isSupported}\n${deviceId}\n${deviceName}\n${manufacturerName}\n${productName}\n${serialNumber}`,
+        );
+      }
     });
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>{`Result ${length}`}</Text>
+      <Text style={{ textAlign: 'center' }}>{`Result ${device}`}</Text>
     </View>
   );
 }

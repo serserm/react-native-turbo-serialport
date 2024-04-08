@@ -8,8 +8,27 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
   const serialport = useRef<Serialport>(new Serialport());
 
   useEffect(() => {
-    serialport.current.startListening((data: any) => {
-      params.onChange?.(data);
+    serialport.current.startListening(({ type, ...data }) => {
+      switch (type) {
+        case 'onError':
+          params.onError?.(data);
+          break;
+        case 'onService':
+          params.onService?.(data);
+          break;
+        case 'onConnected':
+          params.onConnected?.(data);
+          break;
+        case 'onDeviceAttached':
+          params.onDeviceAttached?.(data);
+          break;
+        case 'onDeviceDetached':
+          params.onDeviceDetached?.(data);
+          break;
+        case 'onReadData':
+          params.onReadData?.(data);
+          break;
+      }
     });
 
     return () => {

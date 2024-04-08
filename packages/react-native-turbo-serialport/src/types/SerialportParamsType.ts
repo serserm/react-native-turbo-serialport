@@ -1,5 +1,10 @@
 import type { ListenerType } from './ListenerType';
 
 export interface SerialportParamsType {
-  onChange?: ListenerType;
+  onError?: ListenerType;
+  onReadData?: ListenerType;
+  onService?: ListenerType;
+  onConnected?: ListenerType;
+  onDeviceAttached?: ListenerType;
+  onDeviceDetached?: ListenerType;
 }

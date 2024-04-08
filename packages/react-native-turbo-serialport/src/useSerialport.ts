@@ -17,5 +17,11 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
     };
   }, []);
 
-  return {};
+  function listDevices() {
+    return serialport.current.listDevices();
+  }
+
+  return {
+    listDevices,
+  };
 }

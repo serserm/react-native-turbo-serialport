@@ -1,1 +1,3 @@
-export interface UseSerialportType {}
+export interface UseSerialportType {
+  listDevices: () => Promise<any>;
+}

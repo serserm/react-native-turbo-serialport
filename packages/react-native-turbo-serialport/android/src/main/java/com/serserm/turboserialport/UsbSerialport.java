@@ -69,10 +69,10 @@ public class UsbSerialport {
   private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
-      UsbDevice device = intent.getExtras().getParcelable(UsbManager.EXTRA_DEVICE);
-      int deviceId = device.getDeviceId();
       switch (intent.getAction()) {
         case Definitions.ACTION_USB_ATTACHED: {
+          UsbDevice device = intent.getExtras().getParcelable(UsbManager.EXTRA_DEVICE);
+          int deviceId = device.getDeviceId();
           WritableMap params = Arguments.createMap();
           params.putString("type", Definitions.onDeviceAttached);
           params.putInt("data", deviceId);
@@ -83,6 +83,8 @@ public class UsbSerialport {
         }
         break;
         case Definitions.ACTION_USB_DETACHED: {
+          UsbDevice device = intent.getExtras().getParcelable(UsbManager.EXTRA_DEVICE);
+          int deviceId = device.getDeviceId();
           WritableMap params = Arguments.createMap();
           params.putString("type", Definitions.onDeviceDetached);
           params.putInt("data", deviceId);

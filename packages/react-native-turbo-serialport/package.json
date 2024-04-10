@@ -33,8 +33,13 @@
   },
   "keywords": [
     "react-native",
-    "ios",
-    "android"
+    "react-native-usb-serialport",
+    "android",
+    "android serialport",
+    "usb serial port",
+    "serial port",
+    "serialport",
+    "usb"
   ],
   "repository": {
     "type": "git",

@@ -12,6 +12,7 @@ export class Device {
   readonly #manufacturerName: string;
   readonly #productName: string;
   readonly #serialNumber: string;
+  readonly #interfaceCount: number;
 
   constructor(data: any) {
     this.#isSupported = data.isSupported ?? false;
@@ -25,6 +26,7 @@ export class Device {
     this.#manufacturerName = data.manufacturerName || '';
     this.#productName = data.productName || '';
     this.#serialNumber = data.serialNumber || '';
+    this.#interfaceCount = data.interfaceCount || 0;
   }
 
   get isSupported() {
@@ -59,6 +61,9 @@ export class Device {
   }
   get serialNumber() {
     return this.#serialNumber;
+  }
+  get interfaceCount() {
+    return this.#interfaceCount;
   }
 
   connect = () => {

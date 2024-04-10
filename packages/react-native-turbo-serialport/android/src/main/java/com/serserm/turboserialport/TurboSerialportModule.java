@@ -49,23 +49,45 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   }
 
   @ReactMethod
+  public void setParams(
+    String driver,
+    boolean autoConnect,
+    double portInterface,
+    double returnedDataType,
+    double baudRate,
+    double dataBit,
+    double stopBit,
+    double parity,
+    double flowControl
+   ) {
+    usbSerialport.setParams(
+      driver,
+      autoConnect,
+      (int) portInterface,
+      (int) returnedDataType,
+      (int) baudRate,
+      (int) dataBit,
+      (int) stopBit,
+      (int) parity,
+      (int) flowControl
+    );
+  }
+
+  @ReactMethod
   public void listDevices(Promise promise) {
     promise.resolve(usbSerialport.listDevices());
   }
 
   @ReactMethod
   public void connect(double deviceId) {
-    usbSerialport.connect((int) deviceId);
+    if (listenerCount > 0) {
+      usbSerialport.connect((int) deviceId);
+    }
   }
 
   @ReactMethod
   public void disconnect() {
     usbSerialport.disconnect();
-  }
-
-  @ReactMethod
-  public void isSupported(double deviceId, Promise promise) {
-    promise.resolve(usbSerialport.isSupported((int) deviceId));
   }
 
   @ReactMethod
@@ -88,7 +110,9 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     for (int i = 0; i < length; i++) {
       bytes[i] = (byte) message.getInt(i);
     }
-    usbSerialport.write(bytes);
+    if (listenerCount > 0) {
+      usbSerialport.write(bytes);
+    }
   }
 
   @ReactMethod
@@ -97,7 +121,9 @@ public class TurboSerialportModule extends TurboSerialportSpec {
       return;
     }
     byte[] bytes = message.getBytes();
-    usbSerialport.write(bytes);
+    if (listenerCount > 0) {
+      usbSerialport.write(bytes);
+    }
   }
 
   @ReactMethod
@@ -106,7 +132,9 @@ public class TurboSerialportModule extends TurboSerialportSpec {
       return;
     }
     byte[] bytes = Base64.decode(message, Base64.DEFAULT);
-    usbSerialport.write(bytes);
+    if (listenerCount > 0) {
+      usbSerialport.write(bytes);
+    }
   }
 
   @ReactMethod
@@ -125,6 +153,8 @@ public class TurboSerialportModule extends TurboSerialportSpec {
       }
       bytes[i] = (byte) Integer.parseInt(hex, 16);
     }
-    usbSerialport.write(bytes);
+    if (listenerCount > 0) {
+      usbSerialport.write(bytes);
+    }
   }
 }

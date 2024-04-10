@@ -2,8 +2,8 @@ package com.serserm.turboserialport;
 
 public class Definitions {
   //react-native events
+  public static final String serialportEvent   = "serialportEvent";
   public static final String onError           = "onError";
-  public static final String onService         = "onService";
   public static final String onConnected       = "onConnected";
   public static final String onDeviceAttached  = "onDeviceAttached";
   public static final String onDeviceDetached  = "onDeviceDetached";

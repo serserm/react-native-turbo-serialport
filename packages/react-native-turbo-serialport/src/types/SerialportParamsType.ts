@@ -1,9 +1,9 @@
 import type { ListenerType } from './ListenerType';
+import type { ParamsType } from './ParamsType';
 
-export interface SerialportParamsType {
+export interface SerialportParamsType extends ParamsType {
   onError?: ListenerType;
   onReadData?: ListenerType;
-  onService?: ListenerType;
   onConnected?: ListenerType;
   onDeviceAttached?: ListenerType;
   onDeviceDetached?: ListenerType;

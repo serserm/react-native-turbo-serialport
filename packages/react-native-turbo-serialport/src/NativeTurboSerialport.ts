@@ -2,6 +2,18 @@ import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
+  setParams(
+    driver: string,
+    autoConnect: boolean,
+    portInterface: number,
+    returnedDataType: number,
+    baudRate: number,
+    dataBit: number,
+    stopBit: number,
+    parity: number,
+    flowControl: number,
+  ): void;
+
   addListener(eventName: string): void;
 
   removeListeners(count: number): void;
@@ -11,8 +23,6 @@ export interface Spec extends TurboModule {
   connect(deviceId: number): void;
 
   disconnect(): void;
-
-  isSupported(deviceId: number): Promise<any>;
 
   isConnected(): Promise<any>;
 

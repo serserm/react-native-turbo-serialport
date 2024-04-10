@@ -1,31 +1,24 @@
-# react-native-turbo-serialport
+# @serserm/react-native-turbo-serialport
 
-React Native - Usb Serial Port Communication For Android Platform
+[![Platform](https://img.shields.io/badge/platform-android-989898.svg)](https://npmjs.org/package/@serserm/react-native-turbo-serialport)
+[![types - typescript](https://img.shields.io/npm/types/badge-maker)](https://www.typescriptlang.org)
+[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
+<br/>
+[![npm version](https://img.shields.io/npm/v/@serserm/react-native-turbo-serialport.svg)](https://www.npmjs.com/package/@serserm/react-native-turbo-serialport)
+[![npm downloads](https://img.shields.io/npm/dm/@serserm/react-native-turbo-serialport.svg)](https://www.npmjs.com/package/@serserm/react-native-turbo-serialport)
+
+Support the **[React Native New Architecture](https://reactnative.dev/docs/the-new-architecture/landing-page)**
 
 ## Installation
 
-```sh
-npm install react-native-turbo-serialport
-```
+Look [Installation Instructions](https://github.com/serserm/react-native-turbo-serialport/blob/main/docs/installation.md)
 
-## Usage
+## [Change Log](https://github.com/serserm/react-native-turbo-serialport/blob/main/CHANGELOG.md)
 
-```js
-import { multiply } from 'react-native-turbo-serialport';
+## Example
 
-// ...
-
-const result = await multiply(3, 7);
-```
-
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+[react-native-turbo-serialport-example](https://github.com/serserm/react-native-turbo-serialport/blob/main/example)
 
 ## License
 
-MIT
-
----
-
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+[MIT](LICENSE)

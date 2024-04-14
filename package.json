@@ -5,7 +5,7 @@
   "license": "MIT",
   "workspaces": [
     "packages/*",
-    "example"
+    "examples/*"
   ],
   "packageManager": "yarn@4.1.0",
   "engines": {

@@ -31,8 +31,8 @@ export enum DataBit {
 
 export enum StopBit {
   STOP_BITS_1 = 1,
-  STOP_BITS_15,
   STOP_BITS_2,
+  STOP_BITS_15,
 }
 
 export enum Parity {

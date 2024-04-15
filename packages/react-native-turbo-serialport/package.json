@@ -1,6 +1,6 @@
 {
   "name": "@serserm/react-native-turbo-serialport",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React Native - Usb Serial Port Communication For Android Platform",
   "author": "serserm (https://github.com/serserm)",
   "license": "MIT",

@@ -12399,9 +12399,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-turbo-serialport-example@workspace:example":
+"react-native-turbo-serialport-example@workspace:examples/native":
   version: 0.0.0-use.local
-  resolution: "react-native-turbo-serialport-example@workspace:example"
+  resolution: "react-native-turbo-serialport-example@workspace:examples/native"
   dependencies:
     "@babel/core": "npm:^7.24.4"
     "@babel/preset-env": "npm:^7.24.4"

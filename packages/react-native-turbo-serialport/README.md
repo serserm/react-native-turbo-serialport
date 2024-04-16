@@ -19,6 +19,8 @@ Look [Installation Instructions](https://github.com/serserm/react-native-turbo-s
 
 [react-native-turbo-serialport-example](https://github.com/serserm/react-native-turbo-serialport/blob/main/examples/native)
 
+[expo-turbo-serialport-example](https://github.com/serserm/react-native-turbo-serialport/blob/main/examples/expo-app)
+
 ## License
 
 [MIT](LICENSE)

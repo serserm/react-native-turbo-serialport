@@ -2,16 +2,22 @@
 
 >**Note**: Not supported for iOS
 
-To add @serserm/react-native-turbo-serialport to a React native app that uses npm, run:
+React native app that uses npm, run:
 
 ```sh
 npm install @serserm/react-native-turbo-serialport
 ```
 
-To add @serserm/react-native-turbo-serialport to a React native app that uses yarn, run:
+React native app that uses yarn, run:
 
 ```sh
 yarn add @serserm/react-native-turbo-serialport
+```
+
+Expo app run:
+
+```sh
+npx expo install @serserm/react-native-turbo-serialport
 ```
 
 ## Dependencies

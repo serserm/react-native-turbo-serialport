@@ -21,7 +21,7 @@ DerivedData
 *.ipa
 *.xcuserstate
 project.xcworkspace
-ios/.xcode.env.local
+**/ios/.xcode.env.local
 
 # Android/IJ
 #
@@ -36,7 +36,7 @@ android.iml
 
 # Cocoapods
 #
-ios/Pods/
+**/ios/Pods/
 
 # Ruby
 vendor/
@@ -52,8 +52,8 @@ yarn-error.log
 # BUCK
 buck-out/
 \.buckd/
-android/app/libs
-android/keystores/debug.keystore
+**/android/app/libs
+**/android/keystores/debug.keystore
 
 # Yarn
 .yarn/*

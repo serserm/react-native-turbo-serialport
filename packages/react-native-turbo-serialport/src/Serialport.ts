@@ -67,16 +67,16 @@ export class Serialport {
     });
   };
 
-  connect = (deviceId: number) => {
-    TurboSerialport.connect(deviceId);
+  connect = (deviceId?: number) => {
+    TurboSerialport.connect(deviceId || -1);
   };
 
-  disconnect = () => {
-    TurboSerialport.disconnect();
+  disconnect = (deviceId?: number) => {
+    TurboSerialport.disconnect(deviceId || -1);
   };
 
-  isConnected = (): Promise<boolean> => {
-    return TurboSerialport.isConnected();
+  isConnected = (deviceId?: number): Promise<boolean> => {
+    return TurboSerialport.isConnected(deviceId || -1);
   };
 
   isServiceStarted = (): Promise<boolean> => {

@@ -86,12 +86,16 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   }
 
   @ReactMethod
-  public void disconnect() {
-    usbSerialport.disconnect();
+  public void disconnect(double deviceId) {
+    if (deviceId > 0) {
+      usbSerialport.disconnect((int) deviceId);
+    } else {
+      usbSerialport.disconnectAll();
+    }
   }
 
   @ReactMethod
-  public void isConnected(Promise promise) {
+  public void isConnected(double deviceId, Promise promise) {
     promise.resolve(usbSerialport.isConnected());
   }
 

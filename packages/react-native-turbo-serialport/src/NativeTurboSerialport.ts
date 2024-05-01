@@ -22,9 +22,9 @@ export interface Spec extends TurboModule {
 
   connect(deviceId: number): void;
 
-  disconnect(): void;
+  disconnect(deviceId: number): void;
 
-  isConnected(): Promise<any>;
+  isConnected(deviceId: number): Promise<any>;
 
   isServiceStarted(): Promise<any>;
 

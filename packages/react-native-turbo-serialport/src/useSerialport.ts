@@ -47,16 +47,16 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
     return serialport.current.listDevices();
   }
 
-  function connect(deviceId: number) {
+  function connect(deviceId?: number) {
     serialport.current.connect(deviceId);
   }
 
-  function disconnect() {
-    serialport.current.disconnect();
+  function disconnect(deviceId?: number) {
+    serialport.current.disconnect(deviceId);
   }
 
-  function isConnected() {
-    return serialport.current.isConnected();
+  function isConnected(deviceId?: number) {
+    return serialport.current.isConnected(deviceId);
   }
 
   function isServiceStarted() {

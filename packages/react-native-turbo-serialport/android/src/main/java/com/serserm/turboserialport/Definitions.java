@@ -2,7 +2,7 @@ package com.serserm.turboserialport;
 
 public class Definitions {
   //react-native events
-  public static final String serialportEvent   = "serialportEvent";
+  public static final String serialPortEvent   = "serialportEvent";
   public static final String onError           = "onError";
   public static final String onConnected       = "onConnected";
   public static final String onDeviceAttached  = "onDeviceAttached";
@@ -66,8 +66,9 @@ public class Definitions {
 
   public static final String EXTRA_USB_DEVICE_NAME = "com.melihyarikkaya.rnserialport.USB_DEVICE_NAME";
 
-  public static final int RETURNED_DATA_TYPE_INTARRAY = 1;
-  public static final int RETURNED_DATA_TYPE_HEXSTRING = 2;
+  public static final int RETURNED_DATA_TYPE_INTARRAY   = 1;
+  public static final int RETURNED_DATA_TYPE_HEXSTRING  = 2;
+  public static final int RETURNED_DATA_TYPE_ASCII      = 3;
 
   public static final String hexChars = "0123456789ABCDEF";
   public static final char[] hexArray = hexChars.toCharArray();

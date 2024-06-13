@@ -44,16 +44,7 @@ export class Serialport {
   startListening = (listener: ListenerType) => {
     const eventEmitter = new NativeEventEmitter(TurboSerialport);
     this.#subscription = eventEmitter.addListener(`serialportEvent`, params => {
-      switch (params.type) {
-        case 'onDeviceAttached':
-          listener({ type: params.type, data: new Device(params.data) });
-          break;
-        case 'onDeviceDetached':
-          listener({ type: params.type, data: new Device(params.data) });
-          break;
-        default:
-          listener(params);
-      }
+      listener(params);
     });
   };
 
@@ -83,19 +74,19 @@ export class Serialport {
     return TurboSerialport.isServiceStarted();
   };
 
-  writeBytes = (message: Array<number>) => {
-    TurboSerialport.writeBytes(message);
+  writeBytes = (message: Array<number>, deviceId?: number) => {
+    TurboSerialport.writeBytes(deviceId || -1, message);
   };
 
-  writeString = (message: string) => {
-    TurboSerialport.writeString(message);
+  writeString = (message: string, deviceId?: number) => {
+    TurboSerialport.writeString(deviceId || -1, message);
   };
 
-  writeBase64 = (message: string) => {
-    TurboSerialport.writeBase64(message);
+  writeBase64 = (message: string, deviceId?: number) => {
+    TurboSerialport.writeBase64(deviceId || -1, message);
   };
 
-  writeHexString = (message: string) => {
-    TurboSerialport.writeHexString(message);
+  writeHexString = (message: string, deviceId?: number) => {
+    TurboSerialport.writeHexString(deviceId || -1, message);
   };
 }

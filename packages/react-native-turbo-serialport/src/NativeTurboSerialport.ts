@@ -28,13 +28,13 @@ export interface Spec extends TurboModule {
 
   isServiceStarted(): Promise<any>;
 
-  writeBytes(message: Array<number>): void;
+  writeBytes(deviceId: number, message: Array<number>): void;
 
-  writeString(message: string): void;
+  writeString(deviceId: number, message: string): void;
 
-  writeBase64(message: string): void;
+  writeBase64(deviceId: number, message: string): void;
 
-  writeHexString(message: string): void;
+  writeHexString(deviceId: number, message: string): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('TurboSerialport');

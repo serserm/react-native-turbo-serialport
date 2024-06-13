@@ -96,7 +96,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
   @ReactMethod
   public void isConnected(double deviceId, Promise promise) {
-    promise.resolve(usbSerialport.isConnected());
+    promise.resolve(usbSerialport.isConnected((int) deviceId));
   }
 
   @ReactMethod
@@ -105,7 +105,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   }
 
   @ReactMethod
-  public void writeBytes(ReadableArray message) {
+  public void writeBytes(double deviceId, ReadableArray message) {
     int length = message.size();
     if (length < 1) {
       return;
@@ -115,34 +115,34 @@ public class TurboSerialportModule extends TurboSerialportSpec {
       bytes[i] = (byte) message.getInt(i);
     }
     if (listenerCount > 0) {
-      usbSerialport.write(bytes);
+      usbSerialport.write((int) deviceId, bytes);
     }
   }
 
   @ReactMethod
-  public void writeString(String message) {
+  public void writeString(double deviceId, String message) {
     if (message.length() < 1) {
       return;
     }
     byte[] bytes = message.getBytes();
     if (listenerCount > 0) {
-      usbSerialport.write(bytes);
+      usbSerialport.write((int) deviceId, bytes);
     }
   }
 
   @ReactMethod
-  public void writeBase64(String message) {
+  public void writeBase64(double deviceId, String message) {
     if (message.length() < 1) {
       return;
     }
     byte[] bytes = Base64.decode(message, Base64.DEFAULT);
     if (listenerCount > 0) {
-      usbSerialport.write(bytes);
+      usbSerialport.write((int) deviceId, bytes);
     }
   }
 
   @ReactMethod
-  public void writeHexString(String message) {
+  public void writeHexString(double deviceId, String message) {
     if (message.length() < 1) {
       return;
     }
@@ -158,7 +158,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
       bytes[i] = (byte) Integer.parseInt(hex, 16);
     }
     if (listenerCount > 0) {
-      usbSerialport.write(bytes);
+      usbSerialport.write((int) deviceId, bytes);
     }
   }
 }

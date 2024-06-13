@@ -2,6 +2,7 @@ package com.serserm.turboserialport;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import android.annotation.SuppressLint;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
@@ -15,15 +16,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import android.os.Build;
-import android.app.PendingIntent;
+import android.os.Looper;
+import android.os.Handler;
+import android.os.Message;
 
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.List;
-import java.lang.SecurityException;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 
 import com.felhr.usbserial.UsbSerialDevice;
@@ -31,17 +33,18 @@ import com.felhr.usbserial.UsbSerialInterface;
 import com.felhr.usbserial.SerialPortBuilder;
 import com.felhr.usbserial.SerialPortCallback;
 import com.felhr.usbserial.SerialInputStream;
+import com.felhr.usbserial.SerialOutputStream;
 
 public class UsbSerialport {
 
   private ReactApplicationContext reactContext;
   private UsbManager usbManager;
   private SerialPortBuilder builder;
-  private List<UsbSerialDevice> serialPortList;
+  private Map<Integer, ReadThread> serialStreamMap = new HashMap<>();
   private boolean broadcastRegistered = false;
-  private UsbSerialDevice serialPort;
-  private UsbDeviceConnection connection;
-  private UsbDevice permissionDevice;
+
+  private Handler writeHandler;
+  private WriteThread writeThread;
 
   // Connection Settings
   private int DATA_BIT     = UsbSerialInterface.DATA_BITS_8;
@@ -72,28 +75,14 @@ public class UsbSerialport {
     err.putString("type", Definitions.onError);
     err.putInt("errorCode", code);
     err.putString("errorMessage", message);
-    sendEvent(Definitions.serialportEvent, err);
+    sendEvent(Definitions.serialPortEvent, err);
   }
 
-  private void sendAttached(UsbDevice device) {
+  private void sendType(int deviceId, String type) {
     WritableMap params = Arguments.createMap();
-    params.putString("type", Definitions.onDeviceAttached);
-    params.putMap("data", serializeDevice(device));
-    sendEvent(Definitions.serialportEvent, params);
-  }
-
-  private void sendDetached(UsbDevice device) {
-    WritableMap params = Arguments.createMap();
-    params.putString("type", Definitions.onDeviceDetached);
-    params.putMap("data", serializeDevice(device));
-    sendEvent(Definitions.serialportEvent, params);
-  }
-
-  private void sendConnected(UsbDevice device, boolean status) {
-    WritableMap params = Arguments.createMap();
-    params.putString("type", Definitions.onConnected);
-    params.putMap("data", serializeDevice(device));
-    sendEvent(Definitions.serialportEvent, params);
+    params.putString("type", type);
+    params.putInt("id", deviceId);
+    sendEvent(Definitions.serialPortEvent, params);
   }
 
   /******************************* USB SERVICE **********************************/
@@ -101,7 +90,25 @@ public class UsbSerialport {
   SerialPortCallback serialPortCallback = new SerialPortCallback() {
     @Override
     public void onSerialPortsDetected(List<UsbSerialDevice> serialPorts) {
-      serialPortList = serialPorts;
+      if (serialPorts.size() == 0) {
+        return;
+      }
+
+      if (writeThread == null) {
+        writeThread = new WriteThread();
+        writeThread.start();
+      }
+
+      for (UsbSerialDevice serialDevice: serialPorts) {
+        int deviceId = serialDevice.getDeviceId();
+        ReadThread stream = serialStreamMap.get(deviceId);
+        if (stream == null && serialDevice.isOpen()) {
+          ReadThread readThread = new ReadThread(deviceId, serialDevice);
+          serialStreamMap.put(deviceId, readThread);
+          readThread.start();
+          sendType(deviceId, Definitions.onConnected);
+        }
+      }
     }
   };
 
@@ -131,17 +138,6 @@ public class UsbSerialport {
           detachedDevices(device);
         }
         break;
-        case Definitions.ACTION_USB_PERMISSION: {
-          if (permissionDevice != null) {
-            if (usbManager.hasPermission(permissionDevice)) {
-//              startConnection(permissionDevice);
-            } else {
-              sendError(Definitions.ERROR_USER_DID_NOT_ALLOW_TO_CONNECT, Definitions.ERROR_USER_DID_NOT_ALLOW_TO_CONNECT_MESSAGE);
-            }
-            permissionDevice = null;
-          }
-        }
-        break;
       }
     }
   };
@@ -151,7 +147,6 @@ public class UsbSerialport {
       IntentFilter filter = new IntentFilter();
       filter.addAction(Definitions.ACTION_USB_ATTACHED);
       filter.addAction(Definitions.ACTION_USB_DETACHED);
-      filter.addAction(Definitions.ACTION_USB_PERMISSION);
       reactContext.registerReceiver(usbReceiver, filter);
       broadcastRegistered = true;
     }
@@ -188,7 +183,7 @@ public class UsbSerialport {
 
   private String bytesToHex(byte[] bytes) {
     char[] chars = new char[bytes.length * 2];
-    for ( int j = 0; j < bytes.length; j++ ) {
+    for (int j = 0, l = bytes.length; j < l; j++) {
       int v = bytes[j] & 0xFF;
       chars[j * 2] = Definitions.hexArray[v >>> 4];
       chars[j * 2 + 1] = Definitions.hexArray[v & 0x0F];
@@ -196,11 +191,21 @@ public class UsbSerialport {
     return new String(chars);
   }
 
-  private UsbDevice chooseDevice(int deviceId) {
-    HashMap<String, UsbDevice> usbDevices = usbManager.getDeviceList();
+  private String toASCII(int value) {
+    int length = 4;
+    StringBuilder builder = new StringBuilder(length);
+    for (int i = length - 1; i >= 0; i--) {
+      builder.append((char) ((value >> (8 * i)) & 0xFF));
+    }
+    return builder.toString();
+  }
 
-    if (!usbDevices.isEmpty()) {
-      for (UsbDevice device : usbDevices.values()) {
+  private UsbDevice chooseDevice(int deviceId) {
+    List<UsbDevice> usbDevices = builder.getPossibleSerialPorts(reactContext);
+    WritableArray deviceList = Arguments.createArray();
+
+    if (usbDevices.size() != 0) {
+      for (UsbDevice device: usbDevices) {
         if (deviceId == -1 || device.getDeviceId() == deviceId) {
           return device;
         }
@@ -210,89 +215,124 @@ public class UsbSerialport {
     return null;
   }
 
-  private void attachedDevices(UsbDevice device) {
-//    List<UsbDevice> possibleSerialPorts = builder.getPossibleSerialPorts(reactContext);
-    if (device != null) {
-      sendDetached(device);
-      boolean ret = builder.disconnectDevice(device);
-      sendConnected(device, false);
-    }
-
+  private boolean checkConnect() {
     if (autoConnect) {
-      builder.openSerialPorts(reactContext, BAUD_RATE, DATA_BIT, STOP_BIT, PARITY, FLOW_CONTROL);
+      return builder.openSerialPorts(reactContext, BAUD_RATE, DATA_BIT, STOP_BIT, PARITY, FLOW_CONTROL);
     } else {
-      builder.getSerialPorts(reactContext);
+      return builder.getSerialPorts(reactContext);
+    }
+  }
+
+  private void attachedDevices(UsbDevice device) {
+    if (device != null) {
+      int deviceId = device.getDeviceId();
+      sendType(deviceId, Definitions.onDeviceAttached);
+    }
+    boolean ret = checkConnect();
+    if (!ret) {
+      sendError(Definitions.ERROR_COULD_NOT_OPEN_SERIALPORT, Definitions.ERROR_COULD_NOT_OPEN_SERIALPORT_MESSAGE);
     }
   }
 
   private void detachedDevices(UsbDevice device) {
     if (device != null) {
-      sendDetached(device);
+      int deviceId = device.getDeviceId();
+      sendType(deviceId, Definitions.onDeviceAttached);
       boolean ret = builder.disconnectDevice(device);
-      sendConnected(device, false);
+      ReadThread stream = serialStreamMap.get(deviceId);
+      stream.setKeep(false);
+      if (!ret) {
+        sendError(Definitions.ERROR_DISCONNECT_FAILED, Definitions.ERROR_DISCONNECT_FAILED_MESSAGE);
+      }
     }
   }
 
-  private void requestUserPermission(UsbDevice device) {
-    permissionDevice = device;
-    int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_IMMUTABLE : 0;
-    PendingIntent mPendingIntent = PendingIntent.getBroadcast(reactContext, 0 , new Intent(Definitions.ACTION_USB_PERMISSION), flags);
-    usbManager.requestPermission(device, mPendingIntent);
+  private class ReadThread extends Thread {
+    private int deviceId;
+    private AtomicBoolean keep = new AtomicBoolean(true);
+    private UsbSerialDevice serialDevice;
+    private SerialInputStream inputStream;
+    private SerialOutputStream outputStream;
+
+    ReadThread(int deviceId, UsbSerialDevice serialDevice) {
+      this.deviceId = deviceId;
+      this.serialDevice = serialDevice;
+      this.inputStream = serialDevice.getInputStream();
+      this.outputStream = serialDevice.getOutputStream();
+    }
+
+    @Override
+    public void run() {
+      while (keep.get()) {
+        if (inputStream == null) {
+          return;
+        }
+
+        int value = read();
+        if (value != -1) {
+          WritableMap params = Arguments.createMap();
+          params.putString("type", Definitions.onReadData);
+          params.putInt("id", deviceId);
+
+          switch (returnedDataType) {
+            //case Definitions.RETURNED_DATA_TYPE_INTARRAY: {
+            //  WritableArray intArray = Arguments.createArray();
+            //  for (byte b: bytes) {
+            //    intArray.pushInt(unsignedByteToInt(b));
+            //  }
+            //  params.putArray("data", intArray);
+            //}
+            //break;
+            //case Definitions.RETURNED_DATA_TYPE_HEXSTRING: {
+            //  params.putString("data", bytesToHex(bytes));
+            //}
+            //break;
+            case Definitions.RETURNED_DATA_TYPE_ASCII: {
+              params.putString("data", toASCII(value));
+            }
+            break;
+          }
+
+          sendEvent(Definitions.serialPortEvent, params);
+        }
+      }
+    }
+
+    public void setKeep(boolean keep) {
+      this.keep.set(keep);
+    }
+
+    public boolean isConnected() {
+      return this.keep.get();
+    }
+
+    public int read() {
+      return this.inputStream.read();
+    }
+
+    public void write(byte[] data) {
+      this.outputStream.write(data);
+    }
   }
 
-  private void startConnection(UsbDevice device) {
-    boolean granted = usbManager.hasPermission(device);
-    if (granted && UsbSerialDevice.isSupported(device)) {
-      connection = usbManager.openDevice(device);
+  private class WriteThread extends Thread {
 
-      if (connection == null) {
-        sendError(Definitions.ERROR_CONNECTION_FAILED, Definitions.ERROR_CONNECTION_FAILED_MESSAGE);
-        return;
-      }
-      if (driver.equals("AUTO")) {
-        serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection, portInterface);
-      } else {
-        serialPort = UsbSerialDevice.createUsbSerialDevice(driver, device, connection, portInterface);
-      }
-      if (!isConnected() || !serialPort.open()) {
-        sendError(Definitions.ERROR_COULD_NOT_OPEN_SERIALPORT, Definitions.ERROR_COULD_NOT_OPEN_SERIALPORT_MESSAGE);
-        return;
-      }
-
-      serialPort.setBaudRate(BAUD_RATE);
-      serialPort.setDataBits(DATA_BIT);
-      serialPort.setStopBits(STOP_BIT);
-      serialPort.setParity(PARITY);
-      serialPort.setFlowControl(FLOW_CONTROL);
-
-      UsbSerialInterface.UsbReadCallback usbReadCallback = new UsbSerialInterface.UsbReadCallback() {
+    @Override
+    @SuppressLint("HandlerLeak")
+    public void run() {
+      Looper.prepare();
+      writeHandler = new Handler() {
         @Override
-        public void onReceivedData(byte[] bytes) {
-          if (bytes.length != 0) {
-            WritableMap params = Arguments.createMap();
-            params.putString("type", Definitions.onReadData);
-            if (returnedDataType == Definitions.RETURNED_DATA_TYPE_INTARRAY) {
-              WritableArray intArray = Arguments.createArray();
-              for (byte b: bytes) {
-                intArray.pushInt(unsignedByteToInt(b));
-              }
-              params.putArray("data", intArray);
-            } else if (returnedDataType == Definitions.RETURNED_DATA_TYPE_HEXSTRING) {
-              params.putString("data", bytesToHex(bytes));
-            }
-
-
-            sendEvent(Definitions.serialportEvent, params);
+        public void handleMessage(Message msg) {
+          int deviceId = msg.arg1;
+          byte[] data = (byte[]) msg.obj;
+          ReadThread stream = serialStreamMap.get(deviceId);
+          if (stream != null) {
+            stream.write(data);
           }
         }
       };
-      serialPort.read(usbReadCallback);
-
-      sendConnected(device, true);
-    } else if (granted) {
-      sendError(Definitions.ERROR_DEVICE_NOT_SUPPORTED, Definitions.ERROR_DEVICE_NOT_SUPPORTED_MESSAGE);
-    } else {
-      requestUserPermission(device);
+      Looper.loop();
     }
   }
 
@@ -322,11 +362,7 @@ public class UsbSerialport {
 
   public void startListening() {
     registerReceiver();
-    if (autoConnect) {
-      builder.openSerialPorts(reactContext, BAUD_RATE, DATA_BIT, STOP_BIT, PARITY, FLOW_CONTROL);
-    } else {
-      builder.getSerialPorts(reactContext);
-    }
+    checkConnect();
   }
 
   public void stopListening() {
@@ -341,11 +377,11 @@ public class UsbSerialport {
   }
 
   public WritableArray listDevices() {
-    HashMap<String, UsbDevice> usbDevices = usbManager.getDeviceList();
+    List<UsbDevice> usbDevices = builder.getPossibleSerialPorts(reactContext);
     WritableArray deviceList = Arguments.createArray();
 
-    if (!usbDevices.isEmpty()) {
-      for (UsbDevice device: usbDevices.values()) {
+    if (usbDevices.size() != 0) {
+      for (UsbDevice device: usbDevices) {
         deviceList.pushMap(serializeDevice(device));
       }
     }
@@ -354,11 +390,7 @@ public class UsbSerialport {
   }
 
   public void connect(int deviceId) {
-    UsbDevice device = chooseDevice(deviceId);
 
-    if (device != null) {
-      startConnection(device);
-    }
   }
 
   public void disconnectAll() {
@@ -367,24 +399,29 @@ public class UsbSerialport {
   public void disconnect(int deviceId) {
     UsbDevice device = chooseDevice(deviceId);
 
-    if (device != null && isConnected()) {
-      serialPort.close();
-      serialPort = null;
+    if (device != null && isConnected(deviceId)) {
+      boolean ret = builder.disconnectDevice(device);
+      ReadThread stream = serialStreamMap.get(deviceId);
+      stream.setKeep(false);
+      if (!ret) {
+        sendError(Definitions.ERROR_DISCONNECT_FAILED, Definitions.ERROR_DISCONNECT_FAILED_MESSAGE);
+      }
 
-      WritableMap params = Arguments.createMap();
-      params.putString("type", Definitions.onConnected);
-      params.putBoolean("data", false);
-      sendEvent(Definitions.serialportEvent, params);
+//      sendType(deviceId, Definitions.onConnected);
     }
   }
 
-  public boolean isConnected() {
-    return serialPort != null;
+  public boolean isConnected(int deviceId) {
+    ReadThread stream = serialStreamMap.get(deviceId);
+    if (stream != null) {
+      return stream.isConnected();
+    }
+    return false;
   }
 
-  public void write(byte[] bytes) {
-    if (isConnected()) {
-      serialPort.write(bytes);
+  public void write(int deviceId, byte[] bytes) {
+    if (isConnected(deviceId)) {
+      writeHandler.obtainMessage(0, deviceId, 0, bytes).sendToTarget();
     } else {
       sendError(Definitions.ERROR_THERE_IS_NO_CONNECTION, Definitions.ERROR_THERE_IS_NO_CONNECTION_MESSAGE);
     }

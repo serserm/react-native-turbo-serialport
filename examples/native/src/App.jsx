@@ -13,40 +13,11 @@ export default function App() {
     onError: ({ errorMessage }) => {
       Alert.alert('Error', `${errorMessage}`);
     },
-    onConnected: ({ data }) => {
-      Alert.alert('Connected', `${data}`);
+    onConnected: ({ id }) => {
+      Alert.alert('Connected', `${id}`);
     },
-    onDeviceAttached: ({ data }) => {
-      if (data) {
-        const {
-          isSupported,
-          deviceId,
-          deviceName,
-          deviceClass,
-          deviceSubclass,
-          deviceProtocol,
-          vendorId,
-          productId,
-          manufacturerName,
-          productName,
-          serialNumber,
-          interfaceCount,
-        } = data;
-        setDevice(
-          `${isSupported}
-          ${deviceId}
-          ${deviceName}
-          ${deviceClass}
-          ${deviceSubclass}
-          ${deviceProtocol}
-          ${vendorId}
-          ${productId}
-          ${interfaceCount}
-          ${manufacturerName}
-          ${productName}
-          ${serialNumber}`,
-        );
-      }
+    onDeviceAttached: ({ id }) => {
+      setDevice(`${id}`);
     },
     onReadData: ({ data }) => {
       setData(intArrayToUtf16(data));

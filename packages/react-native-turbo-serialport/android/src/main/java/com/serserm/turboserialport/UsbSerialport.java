@@ -30,7 +30,6 @@ import android.hardware.usb.UsbManager;
 
 import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
-import com.felhr.usbserial.SerialPortBuilder;
 import com.felhr.usbserial.SerialPortCallback;
 import com.felhr.usbserial.SerialInputStream;
 import com.felhr.usbserial.SerialOutputStream;
@@ -85,9 +84,33 @@ public class UsbSerialport {
     sendEvent(Definitions.serialPortEvent, params);
   }
 
-  /******************************* USB SERVICE **********************************/
+  private int unsignedByteToInt(byte value) {
+    return value & 0xFF;
+  }
+
+  private String bytesToHex(byte[] bytes) {
+    char[] chars = new char[bytes.length * 2];
+    for (int j = 0, l = bytes.length; j < l; j++) {
+      int v = bytes[j] & 0xFF;
+      chars[j * 2] = Definitions.hexArray[v >>> 4];
+      chars[j * 2 + 1] = Definitions.hexArray[v & 0x0F];
+    }
+    return new String(chars);
+  }
+
+  private String toASCII(int value) {
+    int length = 4;
+    StringBuilder stringBuilder = new StringBuilder(length);
+    for (int i = length - 1; i >= 0; i--) {
+      stringBuilder.append((char) ((value >> (8 * i)) & 0xFF));
+    }
+    return stringBuilder.toString();
+  }
+
+  /********************************** SYNC **************************************/
 
   SerialPortCallback serialPortCallback = new SerialPortCallback() {
+
     @Override
     public void onSerialPortsDetected(List<UsbSerialDevice> serialPorts) {
       if (serialPorts.size() == 0) {
@@ -111,109 +134,6 @@ public class UsbSerialport {
       }
     }
   };
-
-  private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
-
-    private UsbDevice getUsbDeviceFromIntent(Intent intent) {
-      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-        return intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
-      } else {
-        // Create local variable to keep scope of deprecation suppression smallest
-        @SuppressWarnings("deprecation")
-        UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-        return device;
-      }
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-      switch (intent.getAction()) {
-        case Definitions.ACTION_USB_ATTACHED: {
-          UsbDevice device = getUsbDeviceFromIntent(intent);
-          attachedDevices(device);
-        }
-        break;
-        case Definitions.ACTION_USB_DETACHED: {
-          UsbDevice device = getUsbDeviceFromIntent(intent);
-          detachedDevices(device);
-        }
-        break;
-      }
-    }
-  };
-
-  private void registerReceiver() {
-    if (!broadcastRegistered) {
-      IntentFilter filter = new IntentFilter();
-      filter.addAction(Definitions.ACTION_USB_ATTACHED);
-      filter.addAction(Definitions.ACTION_USB_DETACHED);
-      reactContext.registerReceiver(usbReceiver, filter);
-      broadcastRegistered = true;
-    }
-  }
-
-  private WritableMap serializeDevice(UsbDevice device) {
-    WritableMap map = Arguments.createMap();
-    map.putBoolean("isSupported", UsbSerialDevice.isSupported(device));
-    map.putString("deviceName", device.getDeviceName());
-    map.putInt("deviceId", device.getDeviceId());
-    map.putInt("deviceClass", device.getDeviceClass());
-    map.putInt("deviceSubclass", device.getDeviceSubclass());
-    map.putInt("deviceProtocol", device.getDeviceProtocol());
-    map.putInt("vendorId", device.getVendorId());
-    map.putInt("productId", device.getProductId());
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      map.putInt("interfaceCount", device.getInterfaceCount());
-      String manufacturerName = device.getManufacturerName();
-      if (manufacturerName != null) {
-        map.putString("manufacturerName", manufacturerName);
-      }
-      String productName = device.getProductName();
-      if (productName != null) {
-        map.putString("productName", productName);
-      }
-    }
-    return map;
-  }
-
-  private int unsignedByteToInt(byte value) {
-    return value & 0xFF;
-  }
-
-  private String bytesToHex(byte[] bytes) {
-    char[] chars = new char[bytes.length * 2];
-    for (int j = 0, l = bytes.length; j < l; j++) {
-      int v = bytes[j] & 0xFF;
-      chars[j * 2] = Definitions.hexArray[v >>> 4];
-      chars[j * 2 + 1] = Definitions.hexArray[v & 0x0F];
-    }
-    return new String(chars);
-  }
-
-  private String toASCII(int value) {
-    int length = 4;
-    StringBuilder builder = new StringBuilder(length);
-    for (int i = length - 1; i >= 0; i--) {
-      builder.append((char) ((value >> (8 * i)) & 0xFF));
-    }
-    return builder.toString();
-  }
-
-  private UsbDevice chooseDevice(int deviceId) {
-    List<UsbDevice> usbDevices = builder.getPossibleSerialPorts(reactContext);
-    WritableArray deviceList = Arguments.createArray();
-
-    if (usbDevices.size() != 0) {
-      for (UsbDevice device: usbDevices) {
-        if (deviceId == -1 || device.getDeviceId() == deviceId) {
-          return device;
-        }
-      }
-    }
-
-    return null;
-  }
 
   private boolean checkConnect() {
     if (autoConnect) {
@@ -334,6 +254,88 @@ public class UsbSerialport {
       };
       Looper.loop();
     }
+  }
+
+  /******************************* USB SERVICE **********************************/
+
+  private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
+
+    private UsbDevice getUsbDeviceFromIntent(Intent intent) {
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        return intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
+      } else {
+        // Create local variable to keep scope of deprecation suppression smallest
+        @SuppressWarnings("deprecation")
+        UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+        return device;
+      }
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      switch (intent.getAction()) {
+        case Definitions.ACTION_USB_ATTACHED: {
+          UsbDevice device = getUsbDeviceFromIntent(intent);
+          attachedDevices(device);
+        }
+        break;
+        case Definitions.ACTION_USB_DETACHED: {
+          UsbDevice device = getUsbDeviceFromIntent(intent);
+          detachedDevices(device);
+        }
+        break;
+      }
+    }
+  };
+
+  private void registerReceiver() {
+    if (!broadcastRegistered) {
+      IntentFilter filter = new IntentFilter();
+      filter.addAction(Definitions.ACTION_USB_ATTACHED);
+      filter.addAction(Definitions.ACTION_USB_DETACHED);
+      reactContext.registerReceiver(usbReceiver, filter);
+      broadcastRegistered = true;
+    }
+  }
+
+  private WritableMap serializeDevice(UsbDevice device) {
+    WritableMap map = Arguments.createMap();
+    map.putBoolean("isSupported", UsbSerialDevice.isSupported(device));
+    map.putString("deviceName", device.getDeviceName());
+    map.putInt("deviceId", device.getDeviceId());
+    map.putInt("deviceClass", device.getDeviceClass());
+    map.putInt("deviceSubclass", device.getDeviceSubclass());
+    map.putInt("deviceProtocol", device.getDeviceProtocol());
+    map.putInt("vendorId", device.getVendorId());
+    map.putInt("productId", device.getProductId());
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      map.putInt("interfaceCount", device.getInterfaceCount());
+      String manufacturerName = device.getManufacturerName();
+      if (manufacturerName != null) {
+        map.putString("manufacturerName", manufacturerName);
+      }
+      String productName = device.getProductName();
+      if (productName != null) {
+        map.putString("productName", productName);
+      }
+    }
+    return map;
+  }
+
+  private UsbDevice chooseDevice(int deviceId) {
+    List<UsbDevice> usbDevices = builder.getPossibleSerialPorts(reactContext);
+    WritableArray deviceList = Arguments.createArray();
+
+    if (usbDevices.size() != 0) {
+      for (UsbDevice device: usbDevices) {
+        if (deviceId == -1 || device.getDeviceId() == deviceId) {
+          return device;
+        }
+      }
+    }
+
+    return null;
   }
 
   /******************************* END SERVICE **********************************/

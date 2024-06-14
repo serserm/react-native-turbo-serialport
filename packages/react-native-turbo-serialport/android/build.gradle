@@ -107,6 +107,7 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
   implementation 'com.github.felHR85:UsbSerial:6.1.0'
+  implementation 'com.annimon:stream:1.2.2'
 }
 
 if (isNewArchitectureEnabled()) {

@@ -206,6 +206,15 @@ public class SerialPortBuilder {
         boolean granted = usbManager.hasPermission(device);
         if (!granted) {
           UsbDeviceStatus deviceStatus = new UsbDeviceStatus(device);
+          deviceStatus.DATA_BIT = DATA_BIT;
+          deviceStatus.STOP_BIT = STOP_BIT;
+          deviceStatus.PARITY = PARITY;
+          deviceStatus.FLOW_CONTROL = FLOW_CONTROL;
+          deviceStatus.BAUD_RATE = BAUD_RATE;
+          deviceStatus.portInterface = portInterface;
+          deviceStatus.returnedDataType = returnedDataType;
+          deviceStatus.driver = driver;
+          serialStatusMap.add(deviceStatus.deviceId, deviceStatus);
           queuedPermissions.add(createUsbPermission(deviceStatus));
         }
       }
@@ -307,14 +316,14 @@ public class SerialPortBuilder {
     int parity,
     int flowControl
   ) {
-//    this.driver = driver;
-//    this.portInterface = portInterface;
-//    this.returnedDataType = returnedDataType;
-//    this.BAUD_RATE = baudRate;
-//    this.DATA_BIT = dataBit;
-//    this.STOP_BIT = stopBit;
-//    this.PARITY = parity;
-//    this.FLOW_CONTROL = flowControl;
+//     deviceStatus.DATA_BIT = dataBit;
+//     deviceStatus.STOP_BIT = stopBit;
+//     deviceStatus.PARITY = parity;
+//     deviceStatus.FLOW_CONTROL = flowControl;
+//     deviceStatus.BAUD_RATE = baudRate;
+//     deviceStatus.portInterface = portInterface;
+//     deviceStatus.returnedDataType = returnedDataType;
+//     deviceStatus.driver = driver;
   }
 
   public void connect(int deviceId) {

@@ -11,9 +11,9 @@ import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
 
 public class UsbDeviceStatus {
-  private AtomicBoolean keep = new AtomicBoolean(true);
-  public int deviceId;
-  public UsbDevice usbDevice;
+  private AtomicBoolean connect = new AtomicBoolean(true);
+  public final int deviceId;
+  public final UsbDevice usbDevice;
   public List<UsbSerialDevice> serialDevices = new ArrayList<>();
   public UsbDeviceConnection usbDeviceConnection;
 
@@ -31,12 +31,12 @@ public class UsbDeviceStatus {
     this.usbDevice = usbDevice;
   }
 
-  public void setKeep(boolean keep) {
-    this.keep.set(keep);
+  public void setConnect(boolean connect) {
+    this.connect.set(connect);
   }
 
   public boolean isConnected() {
-    return this.keep.get();
+    return this.connect.get();
   }
 
   @Override

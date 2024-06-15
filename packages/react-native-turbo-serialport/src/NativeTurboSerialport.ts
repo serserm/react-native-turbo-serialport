@@ -2,9 +2,22 @@ import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
-  setParams(
-    driver: string,
+  init(
     autoConnect: boolean,
+    mode: number,
+    driver: string,
+    portInterface: number,
+    returnedDataType: number,
+    baudRate: number,
+    dataBit: number,
+    stopBit: number,
+    parity: number,
+    flowControl: number,
+  ): void;
+
+  setParams(
+    deviceId: number,
+    driver: string,
     portInterface: number,
     returnedDataType: number,
     baudRate: number,

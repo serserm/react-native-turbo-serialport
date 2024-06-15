@@ -70,6 +70,9 @@ public class Definitions {
   public static final int RETURNED_DATA_TYPE_HEXSTRING  = 2;
   public static final int RETURNED_DATA_TYPE_ASCII      = 3;
 
+  public static final int MODE_ASYNC  = 0;
+  public static final int MODE_SYNC   = 1;
+
   public static final String hexChars = "0123456789ABCDEF";
   public static final char[] hexArray = hexChars.toCharArray();
 }

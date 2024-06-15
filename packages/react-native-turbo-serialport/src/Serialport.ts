@@ -15,10 +15,9 @@ import type { ListenerType, ParamsType } from './types';
 export class Serialport {
   #subscription?: EmitterSubscription;
 
-  setParams = (params?: ParamsType) => {
+  setParams = (params?: ParamsType, deviceId?: number) => {
     const {
       driver = DriverType.AUTO,
-      autoConnect = true,
       portInterface = -1,
       returnedDataType = ReturnedDataType.INTARRAY,
       baudRate = 9600,
@@ -29,8 +28,8 @@ export class Serialport {
     } = params || {};
 
     TurboSerialport.setParams(
+      deviceId || -1,
       driver,
-      autoConnect,
       portInterface,
       returnedDataType,
       baudRate,

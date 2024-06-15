@@ -1,7 +1,7 @@
 import type { ParamsType } from './ParamsType';
 
 export interface UseSerialportType {
-  setParams: (params?: ParamsType) => void;
+  setParams: (params?: ParamsType, deviceId?: number) => void;
   listDevices: () => Promise<any>;
   connect: (deviceId: number) => void;
   disconnect: () => void;

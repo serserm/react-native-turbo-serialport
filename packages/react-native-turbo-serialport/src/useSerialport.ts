@@ -11,7 +11,6 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
   const serialport = useRef<Serialport>(new Serialport());
 
   useEffect(() => {
-    serialport.current.setParams(params);
     serialport.current.startListening(
       ({ type, id, errorCode, errorMessage, data }) => {
         switch (type) {
@@ -39,8 +38,8 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
     };
   }, []);
 
-  function setParams(params?: ParamsType) {
-    serialport.current.setParams(params);
+  function setParams(params?: ParamsType, deviceId?: number) {
+    serialport.current.setParams(params, deviceId);
   }
 
   function listDevices() {

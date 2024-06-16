@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   intArrayToUtf16,
@@ -14,13 +14,13 @@ export default function App() {
       Alert.alert('Error', `${errorMessage}`);
     },
     onConnected: ({ id }) => {
-      Alert.alert('Connected', `${id}`);
+      setDevice(`id ${id} +`);
     },
     onDeviceAttached: ({ id }) => {
-      setDevice(`${id}`);
+      setDevice(`id ${id}`);
     },
     onReadData: ({ data }) => {
-      setData(intArrayToUtf16(data));
+      setData(prev => `${prev}${data}`);
     },
   });
 
@@ -38,7 +38,9 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={{ textAlign: 'center' }}>{`Result\n${device}`}</Text>
-      <Text style={{ textAlign: 'center' }}>{`${data}`}</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <Text style={{ textAlign: 'center' }}>{`${data}`}</Text>
+      </ScrollView>
     </View>
   );
 }
@@ -46,7 +48,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: 50,
   },
 });

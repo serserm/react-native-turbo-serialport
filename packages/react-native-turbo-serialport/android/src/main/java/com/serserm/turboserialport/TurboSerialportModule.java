@@ -77,7 +77,11 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
     @Override
     public void onReadData(int deviceId, String data) {
-      sendType(deviceId, Definitions.onReadData);
+      WritableMap params = Arguments.createMap();
+      params.putString("type", Definitions.onReadData);
+      params.putInt("id", deviceId);
+      params.putString("data", data);
+      sendEvent(Definitions.serialPortEvent, params);
     }
   };
 

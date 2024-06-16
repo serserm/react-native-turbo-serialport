@@ -10,5 +10,5 @@ public interface SerialPortCallback {
   void onDeviceDetached(int deviceId);
   void onConnected(int deviceId, int portInterface);
   void onDisconnected(int deviceId, int portInterface);
-  void onReadData(int deviceId, byte[] bytes);
+  void onReadData(int deviceId, int portInterface, int returnedDataType, byte[] bytes);
 }

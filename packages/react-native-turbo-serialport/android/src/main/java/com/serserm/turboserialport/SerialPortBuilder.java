@@ -86,7 +86,8 @@ public class SerialPortBuilder {
         }
         break;
         case Definitions.ACTION_USB_PERMISSION: {
-          boolean granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
+          UsbDevice device = currentPendingPermission.usbDeviceStatus.usbDevice;
+          boolean granted = usbManager.hasPermission(device);
           boolean hasQueue = queuedPermissions.size() > 0;
           if (granted && autoConnect) {
             createAllPorts(currentPendingPermission.usbDeviceStatus);

@@ -111,8 +111,7 @@ public class SerialPortBuilder {
       @Override
       public void onReceivedData(byte[] bytes) {
         try {
-          String data = new String(bytes, "UTF-8");
-          serialPortCallback.onReadData(deviceId, data);
+          serialPortCallback.onReadData(deviceId, bytes);
         } catch (UnsupportedEncodingException e) {
           e.printStackTrace();
         }

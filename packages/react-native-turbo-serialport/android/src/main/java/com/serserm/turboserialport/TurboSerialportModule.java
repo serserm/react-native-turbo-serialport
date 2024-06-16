@@ -41,17 +41,6 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   SerialPortCallback serialPortCallback = new SerialPortCallback() {
 
     @Override
-    public void onSerialPortsDetected(UsbDeviceStatus usbDeviceStatus, boolean hasQueue) {
-      if (usbDeviceStatus.serialDevices.size() > 0) {
-        for (UsbSerialDevice serialDevice: usbDeviceStatus.serialDevices) {
-          if (serialDevice.isOpen()) {
-  //          sendType(deviceId, Definitions.onConnected);
-          }
-        }
-      }
-    }
-
-    @Override
     public void onError(int code, String message) {
     }
 
@@ -76,7 +65,8 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     }
 
     @Override
-    public void onReadData(int deviceId, String data) {
+    public void onReadData(int deviceId, byte[] bytes) {
+      String data = new String(bytes, "UTF-8");
       WritableMap params = Arguments.createMap();
       params.putString("type", Definitions.onReadData);
       params.putInt("id", deviceId);

@@ -15,10 +15,9 @@ import type { ListenerType, ParamsType } from './types';
 export class Serialport {
   #subscription?: EmitterSubscription;
 
-  setParams = (params?: ParamsType) => {
+  setParams = (params?: ParamsType, deviceId?: number) => {
     const {
       driver = DriverType.AUTO,
-      autoConnect = true,
       portInterface = -1,
       returnedDataType = ReturnedDataType.INTARRAY,
       baudRate = 9600,
@@ -29,8 +28,8 @@ export class Serialport {
     } = params || {};
 
     TurboSerialport.setParams(
+      deviceId || -1,
       driver,
-      autoConnect,
       portInterface,
       returnedDataType,
       baudRate,
@@ -44,16 +43,7 @@ export class Serialport {
   startListening = (listener: ListenerType) => {
     const eventEmitter = new NativeEventEmitter(TurboSerialport);
     this.#subscription = eventEmitter.addListener(`serialportEvent`, params => {
-      switch (params.type) {
-        case 'onDeviceAttached':
-          listener({ type: params.type, data: new Device(params.data) });
-          break;
-        case 'onDeviceDetached':
-          listener({ type: params.type, data: new Device(params.data) });
-          break;
-        default:
-          listener(params);
-      }
+      listener(params);
     });
   };
 
@@ -67,35 +57,35 @@ export class Serialport {
     });
   };
 
-  connect = (deviceId: number) => {
-    TurboSerialport.connect(deviceId);
+  connect = (deviceId?: number) => {
+    TurboSerialport.connect(deviceId || -1);
   };
 
-  disconnect = () => {
-    TurboSerialport.disconnect();
+  disconnect = (deviceId?: number) => {
+    TurboSerialport.disconnect(deviceId || -1);
   };
 
-  isConnected = (): Promise<boolean> => {
-    return TurboSerialport.isConnected();
+  isConnected = (deviceId?: number): Promise<boolean> => {
+    return TurboSerialport.isConnected(deviceId || -1);
   };
 
   isServiceStarted = (): Promise<boolean> => {
     return TurboSerialport.isServiceStarted();
   };
 
-  writeBytes = (message: Array<number>) => {
-    TurboSerialport.writeBytes(message);
+  writeBytes = (message: Array<number>, deviceId?: number) => {
+    TurboSerialport.writeBytes(deviceId || -1, message);
   };
 
-  writeString = (message: string) => {
-    TurboSerialport.writeString(message);
+  writeString = (message: string, deviceId?: number) => {
+    TurboSerialport.writeString(deviceId || -1, message);
   };
 
-  writeBase64 = (message: string) => {
-    TurboSerialport.writeBase64(message);
+  writeBase64 = (message: string, deviceId?: number) => {
+    TurboSerialport.writeBase64(deviceId || -1, message);
   };
 
-  writeHexString = (message: string) => {
-    TurboSerialport.writeHexString(message);
+  writeHexString = (message: string, deviceId?: number) => {
+    TurboSerialport.writeHexString(deviceId || -1, message);
   };
 }

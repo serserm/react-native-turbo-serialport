@@ -2,9 +2,22 @@ import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
-  setParams(
-    driver: string,
+  init(
     autoConnect: boolean,
+    mode: number,
+    driver: string,
+    portInterface: number,
+    returnedDataType: number,
+    baudRate: number,
+    dataBit: number,
+    stopBit: number,
+    parity: number,
+    flowControl: number,
+  ): void;
+
+  setParams(
+    deviceId: number,
+    driver: string,
     portInterface: number,
     returnedDataType: number,
     baudRate: number,
@@ -22,19 +35,19 @@ export interface Spec extends TurboModule {
 
   connect(deviceId: number): void;
 
-  disconnect(): void;
+  disconnect(deviceId: number): void;
 
-  isConnected(): Promise<any>;
+  isConnected(deviceId: number): Promise<any>;
 
   isServiceStarted(): Promise<any>;
 
-  writeBytes(message: Array<number>): void;
+  writeBytes(deviceId: number, message: Array<number>): void;
 
-  writeString(message: string): void;
+  writeString(deviceId: number, message: string): void;
 
-  writeBase64(message: string): void;
+  writeBase64(deviceId: number, message: string): void;
 
-  writeHexString(message: string): void;
+  writeHexString(deviceId: number, message: string): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('TurboSerialport');

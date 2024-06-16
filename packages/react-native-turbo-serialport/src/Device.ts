@@ -1,4 +1,13 @@
 import { TurboSerialport } from './TurboSerialport';
+import {
+  DataBit,
+  DriverType,
+  FlowControl,
+  Parity,
+  ReturnedDataType,
+  StopBit,
+} from './types';
+import type { ParamsType } from './types';
 
 export class Device {
   readonly #isSupported: boolean;
@@ -66,11 +75,56 @@ export class Device {
     return this.#interfaceCount;
   }
 
+  setParams = (params?: ParamsType) => {
+    const {
+      driver = DriverType.AUTO,
+      portInterface = -1,
+      returnedDataType = ReturnedDataType.INTARRAY,
+      baudRate = 9600,
+      dataBit = DataBit.DATA_BITS_8,
+      stopBit = StopBit.STOP_BITS_1,
+      parity = Parity.PARITY_NONE,
+      flowControl = FlowControl.FLOW_CONTROL_OFF,
+    } = params || {};
+
+    TurboSerialport.setParams(
+      this.#deviceId,
+      driver,
+      portInterface,
+      returnedDataType,
+      baudRate,
+      dataBit,
+      stopBit,
+      parity,
+      flowControl,
+    );
+  };
+
   connect = () => {
     TurboSerialport.connect(this.#deviceId);
   };
 
   disconnect = () => {
-    TurboSerialport.disconnect();
+    TurboSerialport.disconnect(this.#deviceId);
+  };
+
+  isConnected = (): Promise<boolean> => {
+    return TurboSerialport.isConnected(this.#deviceId);
+  };
+
+  writeBytes = (message: Array<number>) => {
+    TurboSerialport.writeBytes(this.#deviceId, message);
+  };
+
+  writeString = (message: string) => {
+    TurboSerialport.writeString(this.#deviceId, message);
+  };
+
+  writeBase64 = (message: string) => {
+    TurboSerialport.writeBase64(this.#deviceId, message);
+  };
+
+  writeHexString = (message: string) => {
+    TurboSerialport.writeHexString(this.#deviceId, message);
   };
 }

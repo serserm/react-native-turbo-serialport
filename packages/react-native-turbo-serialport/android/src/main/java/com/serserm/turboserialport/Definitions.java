@@ -2,9 +2,10 @@ package com.serserm.turboserialport;
 
 public class Definitions {
   //react-native events
-  public static final String serialportEvent   = "serialportEvent";
+  public static final String serialPortEvent   = "serialportEvent";
   public static final String onError           = "onError";
   public static final String onConnected       = "onConnected";
+  public static final String onDisconnected    = "onDisconnected";
   public static final String onDeviceAttached  = "onDeviceAttached";
   public static final String onDeviceDetached  = "onDeviceDetached";
   public static final String onReadData        = "onReadData";
@@ -52,22 +53,16 @@ public class Definitions {
 
   ///////////////////////////////////////////////////////////
 
-  public static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
+  public static final String ACTION_USB_PERMISSION = "com.felhr.usbserial.USB_PERMISSION";
   public static final String ACTION_USB_ATTACHED = "android.hardware.usb.action.USB_DEVICE_ATTACHED";
   public static final String ACTION_USB_DETACHED = "android.hardware.usb.action.USB_DEVICE_DETACHED";
-  public static final String ACTION_USB_READY = "com.felhr.connectivityservices.USB_READY";
-  public static final String ACTION_USB_NOT_SUPPORTED = "com.felhr.usbservice.USB_NOT_SUPPORTED";
-  public static final String ACTION_NO_USB = "com.felhr.usbservice.NO_USB";
-  public static final String ACTION_USB_PERMISSION_GRANTED = "com.felhr.usbservice.USB_PERMISSION_GRANTED";
-  public static final String ACTION_USB_PERMISSION_NOT_GRANTED = "com.felhr.usbservice.USB_PERMISSION_NOT_GRANTED";
-  public static final String ACTION_USB_DISCONNECTED = "com.felhr.usbservice.USB_DISCONNECTED";
-  public static final String ACTION_USB_NOT_OPENED = "com.melihyarikkaya.rnserialport.USB_NOT_OPENED";
-  public static final String ACTION_USB_CONNECT = "com.melihyarikkaya.rnserialport.USB_CONNECT";
 
-  public static final String EXTRA_USB_DEVICE_NAME = "com.melihyarikkaya.rnserialport.USB_DEVICE_NAME";
+  public static final int RETURNED_DATA_TYPE_INTARRAY   = 1;
+  public static final int RETURNED_DATA_TYPE_HEXSTRING  = 2;
+  public static final int RETURNED_DATA_TYPE_ASCII      = 3;
 
-  public static final int RETURNED_DATA_TYPE_INTARRAY = 1;
-  public static final int RETURNED_DATA_TYPE_HEXSTRING = 2;
+  public static final int MODE_ASYNC  = 0;
+  public static final int MODE_SYNC   = 1;
 
   public static final String hexChars = "0123456789ABCDEF";
   public static final char[] hexArray = hexChars.toCharArray();

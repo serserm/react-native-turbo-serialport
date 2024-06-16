@@ -11,24 +11,23 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
   const serialport = useRef<Serialport>(new Serialport());
 
   useEffect(() => {
-    serialport.current.setParams(params);
     serialport.current.startListening(
-      ({ type, errorCode, errorMessage, data }) => {
+      ({ type, id, errorCode, errorMessage, data }) => {
         switch (type) {
           case 'onReadData':
-            params.onReadData?.({ data });
+            params.onReadData?.({ id, data });
             break;
           case 'onError':
             params.onError?.({ errorCode, errorMessage });
             break;
           case 'onConnected':
-            params.onConnected?.({ data });
+            params.onConnected?.({ id });
             break;
           case 'onDeviceAttached':
-            params.onDeviceAttached?.({ data });
+            params.onDeviceAttached?.({ id });
             break;
           case 'onDeviceDetached':
-            params.onDeviceDetached?.({ data });
+            params.onDeviceDetached?.({ id });
             break;
         }
       },
@@ -39,24 +38,24 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
     };
   }, []);
 
-  function setParams(params?: ParamsType) {
-    serialport.current.setParams(params);
+  function setParams(params?: ParamsType, deviceId?: number) {
+    serialport.current.setParams(params, deviceId);
   }
 
   function listDevices() {
     return serialport.current.listDevices();
   }
 
-  function connect(deviceId: number) {
+  function connect(deviceId?: number) {
     serialport.current.connect(deviceId);
   }
 
-  function disconnect() {
-    serialport.current.disconnect();
+  function disconnect(deviceId?: number) {
+    serialport.current.disconnect(deviceId);
   }
 
-  function isConnected() {
-    return serialport.current.isConnected();
+  function isConnected(deviceId?: number) {
+    return serialport.current.isConnected(deviceId);
   }
 
   function isServiceStarted() {

@@ -57,7 +57,6 @@ export enum ReturnedDataType {
 
 export interface ParamsType {
   driver?: DriverType;
-  autoConnect?: boolean;
   portInterface?: number;
   baudRate?: BaudRate;
   dataBit?: DataBit;
@@ -65,4 +64,9 @@ export interface ParamsType {
   parity?: Parity;
   flowControl?: FlowControl;
   returnedDataType?: ReturnedDataType;
+}
+
+export enum Mode {
+  ASYNC,
+  SYNC,
 }

@@ -5,22 +5,31 @@ import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 
+import java.util.List;
+import android.os.Build;
 import android.util.Base64;
+import android.hardware.usb.UsbDevice;
+import com.felhr.usbserial.UsbSerialDevice;
 
 public class TurboSerialportModule extends TurboSerialportSpec {
   public static final String NAME = "TurboSerialport";
 
-  private ReactApplicationContext reactContext;
+  private final ReactApplicationContext reactContext;
+  private final SerialPortBuilder builder;
+//  private final UsbSerialport usbSerialport;
   private int listenerCount = 0;
-  private UsbSerialport usbSerialport;
 
   TurboSerialportModule(ReactApplicationContext context) {
     super(context);
     reactContext = context;
-    usbSerialport = new UsbSerialport(context);
+    builder = SerialPortBuilder.createSerialPortBuilder(context, serialPortCallback);
   }
 
   @Override
@@ -29,11 +38,180 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     return NAME;
   }
 
+  SerialPortCallback serialPortCallback = new SerialPortCallback() {
+
+    @Override
+    public void onError(int code, String message) {
+    }
+
+    @Override
+    public void onDeviceAttached(int deviceId) {
+      sendType(deviceId, Definitions.onDeviceAttached);
+    }
+
+    @Override
+    public void onDeviceDetached(int deviceId) {
+      sendType(deviceId, Definitions.onDeviceDetached);
+    }
+
+    @Override
+    public void onConnected(int deviceId, int portInterface) {
+      sendType(deviceId, Definitions.onConnected);
+    }
+
+    @Override
+    public void onDisconnected(int deviceId, int portInterface) {
+      sendType(deviceId, Definitions.onDisconnected);
+    }
+
+    @Override
+    public void onReadData(int deviceId, byte[] bytes) {
+      String data = new String(bytes, "UTF-8");
+      WritableMap params = Arguments.createMap();
+      params.putString("type", Definitions.onReadData);
+      params.putInt("id", deviceId);
+      params.putString("data", data);
+      sendEvent(Definitions.serialPortEvent, params);
+    }
+  };
+
+  private void sendEvent(String eventName, @Nullable WritableMap params) {
+    reactContext
+        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+        .emit(eventName, params);
+  }
+
+  private void sendError(int code, String message) {
+    WritableMap err = Arguments.createMap();
+    err.putString("type", Definitions.onError);
+    err.putInt("errorCode", code);
+    err.putString("errorMessage", message);
+    sendEvent(Definitions.serialPortEvent, err);
+  }
+
+  private void sendType(int deviceId, String type) {
+    WritableMap params = Arguments.createMap();
+    params.putString("type", type);
+    params.putInt("id", deviceId);
+    sendEvent(Definitions.serialPortEvent, params);
+  }
+
+  private WritableMap serializeDevice(UsbDevice device) {
+    WritableMap map = Arguments.createMap();
+    map.putBoolean("isSupported", UsbSerialDevice.isSupported(device));
+    map.putString("deviceName", device.getDeviceName());
+    map.putInt("deviceId", device.getDeviceId());
+    map.putInt("deviceClass", device.getDeviceClass());
+    map.putInt("deviceSubclass", device.getDeviceSubclass());
+    map.putInt("deviceProtocol", device.getDeviceProtocol());
+    map.putInt("vendorId", device.getVendorId());
+    map.putInt("productId", device.getProductId());
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      map.putInt("interfaceCount", device.getInterfaceCount());
+      String manufacturerName = device.getManufacturerName();
+      if (manufacturerName != null) {
+        map.putString("manufacturerName", manufacturerName);
+      }
+      String productName = device.getProductName();
+      if (productName != null) {
+        map.putString("productName", productName);
+      }
+    }
+    return map;
+  }
+
+  /********************************** CONVERTING **************************************/
+
+  private int unsignedByteToInt(byte value) {
+    return value & 0xFF;
+  }
+
+  private String bytesToHex(byte[] bytes) {
+    char[] chars = new char[bytes.length * 2];
+    for (int j = 0, l = bytes.length; j < l; j++) {
+      int v = bytes[j] & 0xFF;
+      chars[j * 2] = Definitions.hexArray[v >>> 4];
+      chars[j * 2 + 1] = Definitions.hexArray[v & 0x0F];
+    }
+    return new String(chars);
+  }
+
+  private String toASCII(int value) {
+    int length = 4;
+    StringBuilder stringBuilder = new StringBuilder(length);
+    for (int i = length - 1; i >= 0; i--) {
+      stringBuilder.append((char) ((value >> (8 * i)) & 0xFF));
+    }
+    return stringBuilder.toString();
+  }
+
+  private byte[] HexToBytes(String message) {
+    String msg = message.toUpperCase();
+    byte[] bytes = new byte[msg.length() / 2];
+    for (int i = 0; i < bytes.length; i++) {
+      int index = i * 2;
+      String hex = msg.substring(index, index + 2);
+      if (Definitions.hexChars.indexOf(hex.substring(0, 1)) == -1
+          || Definitions.hexChars.indexOf(hex.substring(1, 1)) == -1) {
+        return bytes;
+      }
+      bytes[i] = (byte) Integer.parseInt(hex, 16);
+    }
+    return bytes;
+  }
+
+  private byte[] Base64ToBytes(String message) {
+    return (byte[]) Base64.decode(message, Base64.DEFAULT);
+  }
+
+  private byte[] StringToBytes(String message) {
+    return (byte[]) message.getBytes();
+  }
+
+  private byte[] ArrayToBytes(ReadableArray message) {
+    int length = message.size();
+    byte[] bytes = new byte[length];
+    for (int i = 0; i < length; i++) {
+      bytes[i] = (byte) message.getInt(i);
+    }
+    return bytes;
+  }
+
+  /********************************** REACT **************************************/
+
+  @ReactMethod
+  public void init(
+    boolean autoConnect,
+    double mode,
+    String driver,
+    double portInterface,
+    double returnedDataType,
+    double baudRate,
+    double dataBit,
+    double stopBit,
+    double parity,
+    double flowControl
+  ) {
+    builder.init(
+      autoConnect,
+      (int) mode,
+      driver,
+      (int) portInterface,
+      (int) returnedDataType,
+      (int) baudRate,
+      (int) dataBit,
+      (int) stopBit,
+      (int) parity,
+      (int) flowControl
+    );
+  }
+
   @ReactMethod
   public void addListener(String eventName) {
     if (listenerCount == 0) {
       // Set up any upstream listeners or background tasks as necessary
-      usbSerialport.startListening();
+      builder.getSerialPorts();
     }
     listenerCount += 1;
   }
@@ -44,14 +222,15 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     if (listenerCount <= 0) {
       listenerCount = 0;
       // Remove upstream listeners, stop unnecessary background tasks
-      usbSerialport.stopListening();
+      builder.disconnectAll();
+      builder.unregisterReceiver();
     }
   }
 
   @ReactMethod
   public void setParams(
+    double deviceId,
     String driver,
-    boolean autoConnect,
     double portInterface,
     double returnedDataType,
     double baudRate,
@@ -60,9 +239,9 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     double parity,
     double flowControl
    ) {
-    usbSerialport.setParams(
+    builder.setParams(
+      (int) deviceId,
       driver,
-      autoConnect,
       (int) portInterface,
       (int) returnedDataType,
       (int) baudRate,
@@ -75,24 +254,35 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
   @ReactMethod
   public void listDevices(Promise promise) {
-    promise.resolve(usbSerialport.listDevices());
+    List<UsbDevice> usbDevices = builder.getPossibleSerialPorts();
+    WritableArray deviceList = Arguments.createArray();
+    if (usbDevices.size() != 0) {
+      for (UsbDevice device: usbDevices) {
+        deviceList.pushMap(serializeDevice(device));
+      }
+    }
+    promise.resolve(deviceList);
   }
 
   @ReactMethod
   public void connect(double deviceId) {
     if (listenerCount > 0) {
-      usbSerialport.connect((int) deviceId);
+      builder.connect((int) deviceId);
     }
   }
 
   @ReactMethod
-  public void disconnect() {
-    usbSerialport.disconnect();
+  public void disconnect(double deviceId) {
+    if (deviceId > 0) {
+      builder.disconnect((int) deviceId);
+    } else {
+      builder.disconnectAll();
+    }
   }
 
   @ReactMethod
-  public void isConnected(Promise promise) {
-    promise.resolve(usbSerialport.isConnected());
+  public void isConnected(double deviceId, Promise promise) {
+    promise.resolve(builder.isConnected((int) deviceId));
   }
 
   @ReactMethod
@@ -101,60 +291,42 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   }
 
   @ReactMethod
-  public void writeBytes(ReadableArray message) {
-    int length = message.size();
-    if (length < 1) {
+  public void writeBytes(double deviceId, ReadableArray message) {
+    if (message.size() < 1) {
       return;
     }
-    byte[] bytes = new byte[length];
-    for (int i = 0; i < length; i++) {
-      bytes[i] = (byte) message.getInt(i);
-    }
     if (listenerCount > 0) {
-      usbSerialport.write(bytes);
+      builder.write((int) deviceId, ArrayToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeString(String message) {
+  public void writeString(double deviceId, String message) {
     if (message.length() < 1) {
       return;
     }
-    byte[] bytes = message.getBytes();
     if (listenerCount > 0) {
-      usbSerialport.write(bytes);
+      builder.write((int) deviceId, StringToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeBase64(String message) {
+  public void writeBase64(double deviceId, String message) {
     if (message.length() < 1) {
       return;
     }
-    byte[] bytes = Base64.decode(message, Base64.DEFAULT);
     if (listenerCount > 0) {
-      usbSerialport.write(bytes);
+      builder.write((int) deviceId, Base64ToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeHexString(String message) {
+  public void writeHexString(double deviceId, String message) {
     if (message.length() < 1) {
       return;
     }
-    String msg = message.toUpperCase();
-    byte[] bytes = new byte[msg.length() / 2];
-    for (int i = 0; i < bytes.length; i++) {
-      int index = i * 2;
-      String hex = msg.substring(index, index + 2);
-      if (Definitions.hexChars.indexOf(hex.substring(0, 1)) == -1
-          || Definitions.hexChars.indexOf(hex.substring(1, 1)) == -1) {
-        return;
-      }
-      bytes[i] = (byte) Integer.parseInt(hex, 16);
-    }
     if (listenerCount > 0) {
-      usbSerialport.write(bytes);
+      builder.write((int) deviceId, HexToBytes(message));
     }
   }
 }

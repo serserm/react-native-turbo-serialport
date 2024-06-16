@@ -1,3 +1,4 @@
+export * from './ConfigType';
 export * from './ListenerType';
 export * from './SerialportParamsType';
 export * from './ParamsType';

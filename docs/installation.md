@@ -20,11 +20,6 @@ Expo app run:
 npx expo install @serserm/react-native-turbo-serialport
 ```
 
-## Dependencies
-
-This library depends on:
-[felHR85/UsbSerial](https://github.com/felHR85/UsbSerial)
-
 ## Usage
 
 ```javascript
@@ -45,17 +40,17 @@ const serialport = useSerialport({
   // events callback
   onError: ({errorCode, errorMessage}) => {},
   onReadData: ({data}) => {},        // Array<number> | string
-  onConnected: ({data}) => {},       // boolean
-  onDeviceAttached: ({data}) => {},  // Device
-  onDeviceDetached: ({data}) => {},  // Device
+  onConnected: ({id}) => {},       // number
+  onDeviceAttached: ({id}) => {},  // number
+  onDeviceDetached: ({id}) => {},  // number
 });
 
 const {
   setParams,                // (params: ParamsType) => void
   listDevices,              // () => Promise<Array>
   connect,                  // (deviceId: number) => void
-  disconnect,               // () => void
-  isConnected,              // () => Promise<boolean>
+  disconnect,               // (deviceId: number) => void
+  isConnected,              // (deviceId: number) => Promise<boolean>
   isServiceStarted,         // () => Promise<boolean>
   writeBytes,               // (message: Array<number>) => void
   writeString,              // (message: string) => void

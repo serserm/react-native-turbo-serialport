@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
   intArrayToUtf16,
@@ -13,43 +13,14 @@ export default function App() {
     onError: ({ errorMessage }) => {
       Alert.alert('Error', `${errorMessage}`);
     },
-    onConnected: ({ data }) => {
-      Alert.alert('Connected', `${data}`);
+    onConnected: ({ id }) => {
+      setDevice(`id ${id} +`);
     },
-    onDeviceAttached: ({ data }) => {
-      if (data) {
-        const {
-          isSupported,
-          deviceId,
-          deviceName,
-          deviceClass,
-          deviceSubclass,
-          deviceProtocol,
-          vendorId,
-          productId,
-          manufacturerName,
-          productName,
-          serialNumber,
-          interfaceCount,
-        } = data;
-        setDevice(
-          `${isSupported}
-          ${deviceId}
-          ${deviceName}
-          ${deviceClass}
-          ${deviceSubclass}
-          ${deviceProtocol}
-          ${vendorId}
-          ${productId}
-          ${interfaceCount}
-          ${manufacturerName}
-          ${productName}
-          ${serialNumber}`,
-        );
-      }
+    onDeviceAttached: ({ id }) => {
+      setDevice(`id ${id}`);
     },
     onReadData: ({ data }) => {
-      setData(intArrayToUtf16(data));
+      setData(prev => `${prev}${data}`);
     },
   });
 
@@ -67,7 +38,9 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={{ textAlign: 'center' }}>{`Result\n${device}`}</Text>
-      <Text style={{ textAlign: 'center' }}>{`${data}`}</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <Text style={{ textAlign: 'center' }}>{`${data}`}</Text>
+      </ScrollView>
     </View>
   );
 }
@@ -75,7 +48,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: 50,
   },
 });

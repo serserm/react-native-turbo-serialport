@@ -9,6 +9,10 @@
 
 Support the **[React Native New Architecture](https://reactnative.dev/docs/the-new-architecture/landing-page)**
 
+## Dependencies
+
+This library depends on: [felHR85/UsbSerial](https://github.com/felHR85/UsbSerial)
+
 ## Installation
 
 Look [Installation Instructions](https://github.com/serserm/react-native-turbo-serialport/blob/main/docs/installation.md)

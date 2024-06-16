@@ -29,7 +29,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   TurboSerialportModule(ReactApplicationContext context) {
     super(context);
     reactContext = context;
-    builder = SerialPortBuilder.createSerialPortBuilder(serialPortCallback);
+    builder = SerialPortBuilder.createSerialPortBuilder(context, serialPortCallback);
   }
 
   @Override
@@ -49,6 +49,35 @@ public class TurboSerialportModule extends TurboSerialportSpec {
           }
         }
       }
+    }
+
+    @Override
+    public void onError(int code, String message) {
+    }
+
+    @Override
+    public void onDeviceAttached(int deviceId) {
+      sendType(deviceId, Definitions.onDeviceAttached);
+    }
+
+    @Override
+    public void onDeviceDetached(int deviceId) {
+      sendType(deviceId, Definitions.onDeviceDetached);
+    }
+
+    @Override
+    public void onConnected(int deviceId, int portInterface) {
+      sendType(deviceId, Definitions.onConnected);
+    }
+
+    @Override
+    public void onDisconnected(int deviceId, int portInterface) {
+      sendType(deviceId, Definitions.onDisconnected);
+    }
+
+    @Override
+    public void onReadData(int deviceId, String data) {
+      sendType(deviceId, Definitions.onReadData);
     }
   };
 
@@ -98,6 +127,63 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     return map;
   }
 
+  /********************************** CONVERTING **************************************/
+
+  private int unsignedByteToInt(byte value) {
+    return value & 0xFF;
+  }
+
+  private String bytesToHex(byte[] bytes) {
+    char[] chars = new char[bytes.length * 2];
+    for (int j = 0, l = bytes.length; j < l; j++) {
+      int v = bytes[j] & 0xFF;
+      chars[j * 2] = Definitions.hexArray[v >>> 4];
+      chars[j * 2 + 1] = Definitions.hexArray[v & 0x0F];
+    }
+    return new String(chars);
+  }
+
+  private String toASCII(int value) {
+    int length = 4;
+    StringBuilder stringBuilder = new StringBuilder(length);
+    for (int i = length - 1; i >= 0; i--) {
+      stringBuilder.append((char) ((value >> (8 * i)) & 0xFF));
+    }
+    return stringBuilder.toString();
+  }
+
+  private byte[] HexToBytes(String message) {
+    String msg = message.toUpperCase();
+    byte[] bytes = new byte[msg.length() / 2];
+    for (int i = 0; i < bytes.length; i++) {
+      int index = i * 2;
+      String hex = msg.substring(index, index + 2);
+      if (Definitions.hexChars.indexOf(hex.substring(0, 1)) == -1
+          || Definitions.hexChars.indexOf(hex.substring(1, 1)) == -1) {
+        return bytes;
+      }
+      bytes[i] = (byte) Integer.parseInt(hex, 16);
+    }
+    return bytes;
+  }
+
+  private byte[] Base64ToBytes(String message) {
+    return (byte[]) Base64.decode(message, Base64.DEFAULT);
+  }
+
+  private byte[] StringToBytes(String message) {
+    return (byte[]) message.getBytes();
+  }
+
+  private byte[] ArrayToBytes(ReadableArray message) {
+    int length = message.size();
+    byte[] bytes = new byte[length];
+    for (int i = 0; i < length; i++) {
+      bytes[i] = (byte) message.getInt(i);
+    }
+    return bytes;
+  }
+
   /********************************** REACT **************************************/
 
   @ReactMethod
@@ -142,8 +228,8 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     if (listenerCount <= 0) {
       listenerCount = 0;
       // Remove upstream listeners, stop unnecessary background tasks
-      disconnectAll();
-      unregisterReceiver();
+      builder.disconnectAll();
+      builder.unregisterReceiver();
     }
   }
 
@@ -212,16 +298,11 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
   @ReactMethod
   public void writeBytes(double deviceId, ReadableArray message) {
-    int length = message.size();
-    if (length < 1) {
+    if (message.size() < 1) {
       return;
     }
-    byte[] bytes = new byte[length];
-    for (int i = 0; i < length; i++) {
-      bytes[i] = (byte) message.getInt(i);
-    }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, bytes);
+      builder.write((int) deviceId, ArrayToBytes(message));
     }
   }
 
@@ -230,9 +311,8 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     if (message.length() < 1) {
       return;
     }
-    byte[] bytes = message.getBytes();
     if (listenerCount > 0) {
-      builder.write((int) deviceId, bytes);
+      builder.write((int) deviceId, StringToBytes(message));
     }
   }
 
@@ -241,9 +321,8 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     if (message.length() < 1) {
       return;
     }
-    byte[] bytes = Base64.decode(message, Base64.DEFAULT);
     if (listenerCount > 0) {
-      builder.write((int) deviceId, bytes);
+      builder.write((int) deviceId, Base64ToBytes(message));
     }
   }
 
@@ -252,19 +331,8 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     if (message.length() < 1) {
       return;
     }
-    String msg = message.toUpperCase();
-    byte[] bytes = new byte[msg.length() / 2];
-    for (int i = 0; i < bytes.length; i++) {
-      int index = i * 2;
-      String hex = msg.substring(index, index + 2);
-      if (Definitions.hexChars.indexOf(hex.substring(0, 1)) == -1
-          || Definitions.hexChars.indexOf(hex.substring(1, 1)) == -1) {
-        return;
-      }
-      bytes[i] = (byte) Integer.parseInt(hex, 16);
-    }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, bytes);
+      builder.write((int) deviceId, HexToBytes(message));
     }
   }
 }

@@ -17,18 +17,38 @@ public class UsbDeviceStatus {
   public List<UsbSerialDevice> serialDevices = new ArrayList<>();
   public UsbDeviceConnection usbDeviceConnection;
 
+  public String driver    = "AUTO";
+  public int portInterface = -1;
+  public int returnedDataType = Definitions.RETURNED_DATA_TYPE_INTARRAY;
+  public int BAUD_RATE    = 9600;
   public int DATA_BIT     = UsbSerialInterface.DATA_BITS_8;
   public int STOP_BIT     = UsbSerialInterface.STOP_BITS_1;
   public int PARITY       = UsbSerialInterface.PARITY_NONE;
   public int FLOW_CONTROL = UsbSerialInterface.FLOW_CONTROL_OFF;
-  public int BAUD_RATE    = 9600;
-  public int portInterface = -1;
-  public int returnedDataType = Definitions.RETURNED_DATA_TYPE_INTARRAY;
-  public String driver    = "AUTO";
 
   public UsbDeviceStatus(UsbDevice usbDevice) {
     this.deviceId = usbDevice.getDeviceId();
     this.usbDevice = usbDevice;
+  }
+
+  public void setParams(
+    String driver,
+    int portInterface,
+    int returnedDataType,
+    int baudRate,
+    int dataBit,
+    int stopBit,
+    int parity,
+    int flowControl
+  ) {
+    this.driver = driver;
+    this.portInterface = portInterface;
+    this.returnedDataType = returnedDataType;
+    this.BAUD_RATE = baudRate;
+    this.DATA_BIT = dataBit;
+    this.STOP_BIT = stopBit;
+    this.PARITY = parity;
+    this.FLOW_CONTROL = flowControl;
   }
 
   public void setConnect(boolean connect) {

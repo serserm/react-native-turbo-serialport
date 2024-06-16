@@ -12,16 +12,19 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
 
   useEffect(() => {
     serialport.current.startListening(
-      ({ type, id, errorCode, errorMessage, data }) => {
+      ({ type, id, portInterface, errorCode, errorMessage, data }) => {
         switch (type) {
           case 'onReadData':
-            params.onReadData?.({ id, data });
+            params.onReadData?.({ id, portInterface, data });
             break;
           case 'onError':
             params.onError?.({ errorCode, errorMessage });
             break;
           case 'onConnected':
-            params.onConnected?.({ id });
+            params.onConnected?.({ id, portInterface });
+            break;
+          case 'onDisconnected':
+            params.onDisconnected?.({ id, portInterface });
             break;
           case 'onDeviceAttached':
             params.onDeviceAttached?.({ id });

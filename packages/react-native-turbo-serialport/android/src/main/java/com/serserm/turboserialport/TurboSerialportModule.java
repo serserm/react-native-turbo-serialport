@@ -12,6 +12,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import android.os.Build;
 import android.util.Base64;
@@ -42,6 +43,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
     @Override
     public void onError(int code, String message) {
+      sendError(code, message);
     }
 
     @Override
@@ -56,22 +58,27 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
     @Override
     public void onConnected(int deviceId, int portInterface) {
-      sendType(deviceId, Definitions.onConnected);
+      sendType(deviceId, portInterface, Definitions.onConnected);
     }
 
     @Override
     public void onDisconnected(int deviceId, int portInterface) {
-      sendType(deviceId, Definitions.onDisconnected);
+      sendType(deviceId, portInterface, Definitions.onDisconnected);
     }
 
     @Override
-    public void onReadData(int deviceId, byte[] bytes) {
-      String data = new String(bytes, "UTF-8");
-      WritableMap params = Arguments.createMap();
-      params.putString("type", Definitions.onReadData);
-      params.putInt("id", deviceId);
-      params.putString("data", data);
-      sendEvent(Definitions.serialPortEvent, params);
+    public void onReadData(int deviceId, int portInterface, int returnedDataType, byte[] bytes) {
+      try {
+        String data = new String(bytes, "UTF-8");
+        WritableMap params = Arguments.createMap();
+        params.putString("type", Definitions.onReadData);
+        params.putInt("id", deviceId);
+        params.putInt("portInterface", portInterface);
+        params.putString("data", data);
+        sendEvent(Definitions.serialPortEvent, params);
+      } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+      }
     }
   };
 
@@ -93,6 +100,14 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     WritableMap params = Arguments.createMap();
     params.putString("type", type);
     params.putInt("id", deviceId);
+    sendEvent(Definitions.serialPortEvent, params);
+  }
+
+  private void sendType(int deviceId, int portInterface, String type) {
+    WritableMap params = Arguments.createMap();
+    params.putString("type", type);
+    params.putInt("id", deviceId);
+    params.putInt("portInterface", portInterface);
     sendEvent(Definitions.serialPortEvent, params);
   }
 

@@ -26,10 +26,19 @@ npx expo install @serserm/react-native-turbo-serialport
 import {
   intArrayToUtf16,
   hexToUtf16,
+  initSerialport,
   useSerialport,
   Serialport,
   Device,
 } from '@serserm/react-native-turbo-serialport';
+
+/** {
+ *    autoConnect?: boolean; // true - default
+ *    mode?: Mode;           // ASYC - default
+ *    params?: ParamsType;
+ *  }
+ */
+initSerialport(config);      // ConfigType
 
 // ....
 
@@ -39,23 +48,24 @@ const serialport = useSerialport({
   // ...
   // events callback
   onError: ({errorCode, errorMessage}) => {},
-  onReadData: ({data}) => {},        // Array<number> | string
-  onConnected: ({id}) => {},       // number
-  onDeviceAttached: ({id}) => {},  // number
-  onDeviceDetached: ({id}) => {},  // number
+  onReadData: ({id, portInterface, data}) => {},     // data: string
+  onConnected: ({id, portInterface}) => {},          // number
+  onDisconnected: ({id, portInterface}) => {},       // number
+  onDeviceAttached: ({id}) => {},                    // number
+  onDeviceDetached: ({id}) => {},                    // number
 });
 
 const {
-  setParams,                // (params: ParamsType) => void
+  setParams,                // (params: ParamsType, deviceId?: number) => void
   listDevices,              // () => Promise<Array>
-  connect,                  // (deviceId: number) => void
-  disconnect,               // (deviceId: number) => void
-  isConnected,              // (deviceId: number) => Promise<boolean>
+  connect,                  // (deviceId?: number) => void
+  disconnect,               // (deviceId?: number) => void
+  isConnected,              // (deviceId?: number) => Promise<boolean>
   isServiceStarted,         // () => Promise<boolean>
-  writeBytes,               // (message: Array<number>) => void
-  writeString,              // (message: string) => void
-  writeBase64,              // (message: string) => void
-  writeHexString,           // (message: string) => void
+  writeBytes,               // (message: Array<number>, deviceId?: number) => void
+  writeString,              // (message: string, deviceId?: number) => void
+  writeBase64,              // (message: string, deviceId?: number) => void
+  writeHexString,           // (message: string, deviceId?: number) => void
 } = serialport;
 
 useEffect(() => {
@@ -75,11 +85,15 @@ useEffect(() => {
         productName,
         serialNumber,
         interfaceCount,
+        setParams,          // (params: ParamsType) => void
         connect,            // () => void
         disconnect,         // () => void
+        isConnected,        // () => Promise<boolean>
+        writeBytes,         // (message: Array<number>) => void
+        writeString,        // (message: string) => void
+        writeBase64,        // (message: string) => void
+        writeHexString,     // (message: string) => void
       } = res[0];           // Device
-
-      connect();
     }
   });
 }, []);

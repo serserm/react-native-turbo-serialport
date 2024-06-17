@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import {
-  intArrayToUtf16,
-  useSerialport,
-} from '@serserm/react-native-turbo-serialport';
+import { useSerialport } from '@serserm/react-native-turbo-serialport';
 
-export default function App() {
+export function App() {
   const [device, setDevice] = useState('');
   const [data, setData] = useState('');
   const serialport = useSerialport({
     onError: ({ errorMessage }) => {
       Alert.alert('Error', `${errorMessage}`);
     },
-    onConnected: ({ id }) => {
-      setDevice(`id ${id} +`);
+    onConnected: ({ id, portInterface }) => {
+      setDevice(`id ${id} ${portInterface} +`);
+    },
+    onDisconnected: ({ id, portInterface }) => {
+      setDevice(`id ${id} ${portInterface} -`);
     },
     onDeviceAttached: ({ id }) => {
       setDevice(`id ${id}`);

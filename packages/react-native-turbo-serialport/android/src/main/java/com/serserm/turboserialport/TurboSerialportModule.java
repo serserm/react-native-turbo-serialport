@@ -24,7 +24,6 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
   private final ReactApplicationContext reactContext;
   private final SerialPortBuilder builder;
-//  private final UsbSerialport usbSerialport;
   private int listenerCount = 0;
 
   TurboSerialportModule(ReactApplicationContext context) {
@@ -306,42 +305,42 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   }
 
   @ReactMethod
-  public void writeBytes(double deviceId, ReadableArray message) {
+  public void writeBytes(double deviceId, double portInterface, ReadableArray message) {
     if (message.size() < 1) {
       return;
     }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, ArrayToBytes(message));
+      builder.write((int) deviceId, (int) portInterface, ArrayToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeString(double deviceId, String message) {
+  public void writeString(double deviceId, double portInterface, String message) {
     if (message.length() < 1) {
       return;
     }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, StringToBytes(message));
+      builder.write((int) deviceId, (int) portInterface, StringToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeBase64(double deviceId, String message) {
+  public void writeBase64(double deviceId, double portInterface, String message) {
     if (message.length() < 1) {
       return;
     }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, Base64ToBytes(message));
+      builder.write((int) deviceId, (int) portInterface, Base64ToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeHexString(double deviceId, String message) {
+  public void writeHexString(double deviceId, double portInterface, String message) {
     if (message.length() < 1) {
       return;
     }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, HexToBytes(message));
+      builder.write((int) deviceId, (int) portInterface, HexToBytes(message));
     }
   }
 }

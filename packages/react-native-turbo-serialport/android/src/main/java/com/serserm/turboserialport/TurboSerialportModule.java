@@ -67,12 +67,29 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
     @Override
     public void onReadData(int deviceId, int portInterface, int returnedDataType, byte[] bytes) {
-      String data = new String(bytes, StandardCharsets.UTF_8);
       WritableMap params = Arguments.createMap();
       params.putString("type", Definitions.onReadData);
       params.putInt("id", deviceId);
       params.putInt("portInterface", portInterface);
-      params.putString("data", data);
+      switch (returnedDataType) {
+        case Definitions.RETURNED_DATA_TYPE_INTARRAY: {
+          WritableArray intArray = Arguments.createArray();
+          for (byte b: bytes) {
+            intArray.pushInt(unsignedByteToInt(b));
+          }
+          params.putArray("data", intArray);
+        }
+        break;
+        case Definitions.RETURNED_DATA_TYPE_HEXSTRING: {
+          params.putString("data", bytesToHex(bytes));
+        }
+        break;
+        case Definitions.RETURNED_DATA_TYPE_UTF8: {
+          String data = new String(bytes, StandardCharsets.UTF_8);
+          params.putString("data", data);
+        }
+        break;
+      }
       sendEvent(Definitions.serialPortEvent, params);
     }
   };
@@ -145,15 +162,6 @@ public class TurboSerialportModule extends TurboSerialportSpec {
       chars[j * 2 + 1] = Definitions.hexArray[v & 0x0F];
     }
     return new String(chars);
-  }
-
-  private String toASCII(int value) {
-    int length = 4;
-    StringBuilder stringBuilder = new StringBuilder(length);
-    for (int i = length - 1; i >= 0; i--) {
-      stringBuilder.append((char) ((value >> (8 * i)) & 0xFF));
-    }
-    return stringBuilder.toString();
   }
 
   private byte[] HexToBytes(String message) {

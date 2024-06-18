@@ -79,7 +79,7 @@ export class Device {
     const {
       driver = DriverType.AUTO,
       portInterface = -1,
-      returnedDataType = ReturnedDataType.INTARRAY,
+      returnedDataType = ReturnedDataType.UTF8,
       baudRate = 9600,
       dataBit = DataBit.DATA_BITS_8,
       stopBit = StopBit.STOP_BITS_1,

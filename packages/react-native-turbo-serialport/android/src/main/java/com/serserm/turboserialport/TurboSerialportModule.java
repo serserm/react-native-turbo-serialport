@@ -12,7 +12,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import android.os.Build;
 import android.util.Base64;
@@ -24,7 +24,6 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
   private final ReactApplicationContext reactContext;
   private final SerialPortBuilder builder;
-//  private final UsbSerialport usbSerialport;
   private int listenerCount = 0;
 
   TurboSerialportModule(ReactApplicationContext context) {
@@ -68,17 +67,30 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
     @Override
     public void onReadData(int deviceId, int portInterface, int returnedDataType, byte[] bytes) {
-      try {
-        String data = new String(bytes, "UTF-8");
-        WritableMap params = Arguments.createMap();
-        params.putString("type", Definitions.onReadData);
-        params.putInt("id", deviceId);
-        params.putInt("portInterface", portInterface);
-        params.putString("data", data);
-        sendEvent(Definitions.serialPortEvent, params);
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
+      WritableMap params = Arguments.createMap();
+      params.putString("type", Definitions.onReadData);
+      params.putInt("id", deviceId);
+      params.putInt("portInterface", portInterface);
+      switch (returnedDataType) {
+        case Definitions.RETURNED_DATA_TYPE_INTARRAY: {
+          WritableArray intArray = Arguments.createArray();
+          for (byte b: bytes) {
+            intArray.pushInt(unsignedByteToInt(b));
+          }
+          params.putArray("data", intArray);
+        }
+        break;
+        case Definitions.RETURNED_DATA_TYPE_HEXSTRING: {
+          params.putString("data", bytesToHex(bytes));
+        }
+        break;
+        case Definitions.RETURNED_DATA_TYPE_UTF8: {
+          String data = new String(bytes, StandardCharsets.UTF_8);
+          params.putString("data", data);
+        }
+        break;
       }
+      sendEvent(Definitions.serialPortEvent, params);
     }
   };
 
@@ -152,15 +164,6 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     return new String(chars);
   }
 
-  private String toASCII(int value) {
-    int length = 4;
-    StringBuilder stringBuilder = new StringBuilder(length);
-    for (int i = length - 1; i >= 0; i--) {
-      stringBuilder.append((char) ((value >> (8 * i)) & 0xFF));
-    }
-    return stringBuilder.toString();
-  }
-
   private byte[] HexToBytes(String message) {
     String msg = message.toUpperCase();
     byte[] bytes = new byte[msg.length() / 2];
@@ -181,7 +184,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   }
 
   private byte[] StringToBytes(String message) {
-    return (byte[]) message.getBytes();
+    return (byte[]) message.getBytes(StandardCharsets.UTF_8);
   }
 
   private byte[] ArrayToBytes(ReadableArray message) {
@@ -306,42 +309,42 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   }
 
   @ReactMethod
-  public void writeBytes(double deviceId, ReadableArray message) {
+  public void writeBytes(double deviceId, double portInterface, ReadableArray message) {
     if (message.size() < 1) {
       return;
     }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, ArrayToBytes(message));
+      builder.write((int) deviceId, (int) portInterface, ArrayToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeString(double deviceId, String message) {
+  public void writeString(double deviceId, double portInterface, String message) {
     if (message.length() < 1) {
       return;
     }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, StringToBytes(message));
+      builder.write((int) deviceId, (int) portInterface, StringToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeBase64(double deviceId, String message) {
+  public void writeBase64(double deviceId, double portInterface, String message) {
     if (message.length() < 1) {
       return;
     }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, Base64ToBytes(message));
+      builder.write((int) deviceId, (int) portInterface, Base64ToBytes(message));
     }
   }
 
   @ReactMethod
-  public void writeHexString(double deviceId, String message) {
+  public void writeHexString(double deviceId, double portInterface, String message) {
     if (message.length() < 1) {
       return;
     }
     if (listenerCount > 0) {
-      builder.write((int) deviceId, HexToBytes(message));
+      builder.write((int) deviceId, (int) portInterface, HexToBytes(message));
     }
   }
 }

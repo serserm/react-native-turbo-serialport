@@ -41,13 +41,21 @@ export interface Spec extends TurboModule {
 
   isServiceStarted(): Promise<any>;
 
-  writeBytes(deviceId: number, message: Array<number>): void;
+  writeBytes(
+    deviceId: number,
+    portInterface: number,
+    message: Array<number>,
+  ): void;
 
-  writeString(deviceId: number, message: string): void;
+  writeString(deviceId: number, portInterface: number, message: string): void;
 
-  writeBase64(deviceId: number, message: string): void;
+  writeBase64(deviceId: number, portInterface: number, message: string): void;
 
-  writeHexString(deviceId: number, message: string): void;
+  writeHexString(
+    deviceId: number,
+    portInterface: number,
+    message: string,
+  ): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('TurboSerialport');

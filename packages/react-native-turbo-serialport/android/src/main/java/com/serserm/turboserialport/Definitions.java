@@ -59,7 +59,7 @@ public class Definitions {
 
   public static final int RETURNED_DATA_TYPE_INTARRAY   = 1;
   public static final int RETURNED_DATA_TYPE_HEXSTRING  = 2;
-  public static final int RETURNED_DATA_TYPE_ASCII      = 3;
+  public static final int RETURNED_DATA_TYPE_UTF8       = 3;
 
   public static final int MODE_ASYNC  = 0;
   public static final int MODE_SYNC   = 1;

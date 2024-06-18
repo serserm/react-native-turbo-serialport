@@ -53,6 +53,7 @@ export enum FlowControl {
 export enum ReturnedDataType {
   INTARRAY = 1,
   HEXSTRING,
+  UTF8,
 }
 
 export interface ParamsType {

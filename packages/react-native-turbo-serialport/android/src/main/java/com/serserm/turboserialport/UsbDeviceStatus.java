@@ -19,7 +19,7 @@ public class UsbDeviceStatus {
 
   public String driver    = "AUTO";
   public int portInterface = -1;
-  public int returnedDataType = Definitions.RETURNED_DATA_TYPE_INTARRAY;
+  public int returnedDataType = Definitions.RETURNED_DATA_TYPE_UTF8;
   public int BAUD_RATE    = 9600;
   public int DATA_BIT     = UsbSerialInterface.DATA_BITS_8;
   public int STOP_BIT     = UsbSerialInterface.STOP_BITS_1;

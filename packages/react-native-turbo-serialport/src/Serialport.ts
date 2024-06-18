@@ -19,7 +19,7 @@ export class Serialport {
     const {
       driver = DriverType.AUTO,
       portInterface = -1,
-      returnedDataType = ReturnedDataType.INTARRAY,
+      returnedDataType = ReturnedDataType.UTF8,
       baudRate = 9600,
       dataBit = DataBit.DATA_BITS_8,
       stopBit = StopBit.STOP_BITS_1,
@@ -73,19 +73,35 @@ export class Serialport {
     return TurboSerialport.isServiceStarted();
   };
 
-  writeBytes = (message: Array<number>, deviceId?: number) => {
-    TurboSerialport.writeBytes(deviceId || -1, message);
+  writeBytes = (
+    message: Array<number>,
+    deviceId?: number,
+    portInterface?: number,
+  ) => {
+    TurboSerialport.writeBytes(deviceId || -1, portInterface || 0, message);
   };
 
-  writeString = (message: string, deviceId?: number) => {
-    TurboSerialport.writeString(deviceId || -1, message);
+  writeString = (
+    message: string,
+    deviceId?: number,
+    portInterface?: number,
+  ) => {
+    TurboSerialport.writeString(deviceId || -1, portInterface || 0, message);
   };
 
-  writeBase64 = (message: string, deviceId?: number) => {
-    TurboSerialport.writeBase64(deviceId || -1, message);
+  writeBase64 = (
+    message: string,
+    deviceId?: number,
+    portInterface?: number,
+  ) => {
+    TurboSerialport.writeBase64(deviceId || -1, portInterface || 0, message);
   };
 
-  writeHexString = (message: string, deviceId?: number) => {
-    TurboSerialport.writeHexString(deviceId || -1, message);
+  writeHexString = (
+    message: string,
+    deviceId?: number,
+    portInterface?: number,
+  ) => {
+    TurboSerialport.writeHexString(deviceId || -1, portInterface || 0, message);
   };
 }

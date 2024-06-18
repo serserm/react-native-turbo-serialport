@@ -1,5 +1,6 @@
 package com.serserm.turboserialport;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 
 import android.content.BroadcastReceiver;
@@ -8,18 +9,24 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 
 import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
+import com.felhr.usbserial.SerialInputStream;
+import com.felhr.usbserial.SerialOutputStream;
 
 public class SerialPortBuilder {
   private static SerialPortBuilder SerialPortBuilder;
@@ -28,6 +35,9 @@ public class SerialPortBuilder {
   private Context context;
   private UsbManager usbManager;
   private Map<Integer, UsbDeviceStatus> serialStatusMap = new HashMap<>();
+  private Map<Integer, List<ReadThread>> serialStreamMap = new HashMap<>();
+  private WriteThread writeThread;
+  private Handler writeHandler;
   private boolean broadcastRegistered = false;
   private boolean autoConnect = true;
   private int mode = Definitions.MODE_ASYNC;
@@ -38,7 +48,7 @@ public class SerialPortBuilder {
   private int FLOW_CONTROL = UsbSerialInterface.FLOW_CONTROL_OFF;
   private int BAUD_RATE    = 9600;
   private int portInterface = -1;
-  private int returnedDataType = Definitions.RETURNED_DATA_TYPE_INTARRAY;
+  private int returnedDataType = Definitions.RETURNED_DATA_TYPE_UTF8;
   private String driver    = "AUTO";
 
   private final ArrayBlockingQueue<PendingUsbPermission> queuedPermissions = new ArrayBlockingQueue<>(100);
@@ -107,11 +117,73 @@ public class SerialPortBuilder {
 
   private UsbSerialInterface.UsbReadCallback usbReadCallback(int deviceId, int portInterface, int returnedDataType) {
     return new UsbSerialInterface.UsbReadCallback() {
+
       @Override
       public void onReceivedData(byte[] bytes) {
         serialPortCallback.onReadData(deviceId, portInterface, returnedDataType, bytes);
       }
     };
+  }
+
+  private class ReadThread extends Thread {
+    private AtomicBoolean keep = new AtomicBoolean(true);
+    private int deviceId;
+    private int portInterface;
+    private int returnedDataType;
+    private SerialInputStream serialInputStream;
+
+    public ReadThread(int deviceId, int portInterface, int returnedDataType, SerialInputStream serialInputStream) {
+      this.deviceId = deviceId;
+      this.portInterface = portInterface;
+      this.returnedDataType = returnedDataType;
+      this.serialInputStream = serialInputStream;
+    }
+
+    @Override
+    public void run() {
+      while (keep.get()) {
+        if (serialInputStream == null) {
+          return;
+        }
+        byte[] buffer = new byte[100];
+        int n = serialInputStream.read(buffer);
+        if (n > 0) {
+          byte[] received = new byte[n];
+          System.arraycopy(buffer, 0, received, 0, n);
+          serialPortCallback.onReadData(deviceId, portInterface, returnedDataType, received);
+        }
+      }
+    }
+
+    public void setKeep(boolean keep) {
+      this.keep.set(keep);
+    }
+  }
+
+  private class WriteThread extends Thread {
+
+    @Override
+    @SuppressLint("HandlerLeak")
+    public void run() {
+      Looper.prepare();
+      writeHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+          int deviceId = msg.arg1;
+          int port = msg.arg2;
+          byte[] data = (byte[]) msg.obj;
+          UsbDeviceStatus usbDeviceStatus = serialStatusMap.get(deviceId);
+          if (usbDeviceStatus != null && port < usbDeviceStatus.serialDevices.size()) {
+            UsbSerialDevice usbSerialDevice = usbDeviceStatus.serialDevices.get(port);
+            if (usbSerialDevice != null && usbSerialDevice.isOpen()) {
+              usbSerialDevice.getOutputStream().write(data);
+            }
+          }
+        }
+      };
+      Looper.loop();
+    }
   }
 
   private class PendingUsbPermission {
@@ -141,6 +213,10 @@ public class SerialPortBuilder {
   }
 
   public void registerReceiver() {
+    if (writeThread == null) {
+      writeThread = new WriteThread();
+      writeThread.start();
+    }
     if (!broadcastRegistered) {
       IntentFilter filter = new IntentFilter();
       filter.addAction(Definitions.ACTION_USB_ATTACHED);
@@ -246,19 +322,20 @@ public class SerialPortBuilder {
     }
     if (usbDeviceStatus.usbDeviceConnection != null) {
       for (int portInterface = 0; portInterface < interfaceCount; portInterface++) {
-        if (usbDeviceStatus.portInterface >= 0 && usbDeviceStatus.portInterface != portInterface) {
-          break;
+        UsbSerialDevice usbSerialDevice = null;
+        if (usbDeviceStatus.portInterface < 0
+            || usbDeviceStatus.portInterface >= 0 && usbDeviceStatus.portInterface == portInterface) {
+          usbSerialDevice = usbDeviceStatus.driver.equals("AUTO")
+                    ? UsbSerialDevice.createUsbSerialDevice(
+                                  usbDeviceStatus.usbDevice,
+                                  usbDeviceStatus.usbDeviceConnection,
+                                  portInterface)
+                    : UsbSerialDevice.createUsbSerialDevice(
+                                  usbDeviceStatus.driver,
+                                  usbDeviceStatus.usbDevice,
+                                  usbDeviceStatus.usbDeviceConnection,
+                                  portInterface);
         }
-        UsbSerialDevice usbSerialDevice = usbDeviceStatus.driver.equals("AUTO")
-          ? UsbSerialDevice.createUsbSerialDevice(
-                        usbDeviceStatus.usbDevice,
-                        usbDeviceStatus.usbDeviceConnection,
-                        portInterface)
-          : UsbSerialDevice.createUsbSerialDevice(
-                        usbDeviceStatus.driver,
-                        usbDeviceStatus.usbDevice,
-                        usbDeviceStatus.usbDeviceConnection,
-                        portInterface);
         serialDevices.add(usbSerialDevice);
       }
     }
@@ -270,10 +347,12 @@ public class SerialPortBuilder {
     if (!granted) {
       return false;
     }
+    List<ReadThread> streamDevices = new ArrayList<>();
     int portInterface = 0;
     int openCount = 0;
     for (UsbSerialDevice usbSerialDevice: usbDeviceStatus.serialDevices) {
       boolean isOpen = false;
+      ReadThread stream = null;
       if (usbSerialDevice != null && !usbSerialDevice.isOpen()) {
         isOpen = mode == Definitions.MODE_SYNC ? usbSerialDevice.syncOpen() : usbSerialDevice.open();
       }
@@ -285,31 +364,47 @@ public class SerialPortBuilder {
         usbSerialDevice.setFlowControl(usbDeviceStatus.FLOW_CONTROL);
         usbSerialDevice.setBaudRate(usbDeviceStatus.BAUD_RATE);
         if (mode == Definitions.MODE_SYNC) {
-          // TODO
+          stream = new ReadThread(
+                              usbDeviceStatus.deviceId,
+                              portInterface,
+                              usbDeviceStatus.returnedDataType,
+                              usbSerialDevice.getInputStream());
+          stream.start();
         } else {
           UsbSerialInterface.UsbReadCallback mCallback = usbReadCallback(usbDeviceStatus.deviceId, portInterface, usbDeviceStatus.returnedDataType);
           usbSerialDevice.read(mCallback);
         }
         openCount++;
       }
+      streamDevices.add(stream);
       portInterface++;
+    }
+    if (mode == Definitions.MODE_SYNC) {
+      serialStreamMap.put(usbDeviceStatus.deviceId, streamDevices);
     }
     usbDeviceStatus.setConnect(openCount > 0);
     return openCount > 0;
   }
 
   public void closeAllPorts(UsbDeviceStatus usbDeviceStatus) {
-    int portInterface = usbDeviceStatus.serialDevices.size();
+    int portInterface = 0;
     for (UsbSerialDevice usbSerialDevice: usbDeviceStatus.serialDevices) {
       if (usbSerialDevice != null && usbSerialDevice.isOpen()) {
         if (mode == Definitions.MODE_SYNC) {
+          List<ReadThread> streamDevices = serialStreamMap.get(usbDeviceStatus.deviceId);
+          if (streamDevices != null) {
+            ReadThread stream = streamDevices.get(portInterface);
+            if (stream != null) {
+              stream.setKeep(false);
+            }
+          }
           usbSerialDevice.syncClose();
         } else {
           usbSerialDevice.close();
         }
         serialPortCallback.onDisconnected(usbDeviceStatus.deviceId, portInterface);
       }
-      portInterface--;
+      portInterface++;
     }
     usbDeviceStatus.setConnect(false);
   }
@@ -420,15 +515,18 @@ public class SerialPortBuilder {
     return false;
   }
 
-  public void write(int deviceId, byte[] bytes) {
+  public void write(int deviceId, int portInterface, byte[] bytes) {
     UsbDeviceStatus usbDeviceStatus = serialStatusMap.get(deviceId);
     if (usbDeviceStatus != null && usbDeviceStatus.isConnected()) {
-      int portInterface = 0;
-      for (UsbSerialDevice usbSerialDevice: usbDeviceStatus.serialDevices) {
-        if (usbSerialDevice != null && usbSerialDevice.isOpen()) {
+      UsbSerialDevice usbSerialDevice = usbDeviceStatus.serialDevices.get(portInterface);
+      if (usbSerialDevice != null && usbSerialDevice.isOpen()) {
+        if (mode == Definitions.MODE_SYNC) {
+          if (writeThread != null) {
+            writeHandler.obtainMessage(0, deviceId, portInterface, bytes).sendToTarget();
+          }
+        } else {
           usbSerialDevice.write(bytes);
         }
-        portInterface++;
       }
     } else {
       serialPortCallback.onError(Definitions.ERROR_THERE_IS_NO_CONNECTION, Definitions.ERROR_THERE_IS_NO_CONNECTION_MESSAGE);

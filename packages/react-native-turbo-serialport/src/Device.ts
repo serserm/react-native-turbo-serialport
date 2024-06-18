@@ -79,7 +79,7 @@ export class Device {
     const {
       driver = DriverType.AUTO,
       portInterface = -1,
-      returnedDataType = ReturnedDataType.INTARRAY,
+      returnedDataType = ReturnedDataType.UTF8,
       baudRate = 9600,
       dataBit = DataBit.DATA_BITS_8,
       stopBit = StopBit.STOP_BITS_1,
@@ -112,19 +112,19 @@ export class Device {
     return TurboSerialport.isConnected(this.#deviceId);
   };
 
-  writeBytes = (message: Array<number>) => {
-    TurboSerialport.writeBytes(this.#deviceId, message);
+  writeBytes = (message: Array<number>, portInterface?: number) => {
+    TurboSerialport.writeBytes(this.#deviceId, portInterface || 0, message);
   };
 
-  writeString = (message: string) => {
-    TurboSerialport.writeString(this.#deviceId, message);
+  writeString = (message: string, portInterface?: number) => {
+    TurboSerialport.writeString(this.#deviceId, portInterface || 0, message);
   };
 
-  writeBase64 = (message: string) => {
-    TurboSerialport.writeBase64(this.#deviceId, message);
+  writeBase64 = (message: string, portInterface?: number) => {
+    TurboSerialport.writeBase64(this.#deviceId, portInterface || 0, message);
   };
 
-  writeHexString = (message: string) => {
-    TurboSerialport.writeHexString(this.#deviceId, message);
+  writeHexString = (message: string, portInterface?: number) => {
+    TurboSerialport.writeHexString(this.#deviceId, portInterface || 0, message);
   };
 }

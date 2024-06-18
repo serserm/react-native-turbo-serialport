@@ -12,7 +12,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import android.os.Build;
 import android.util.Base64;
@@ -67,17 +67,13 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
     @Override
     public void onReadData(int deviceId, int portInterface, int returnedDataType, byte[] bytes) {
-      try {
-        String data = new String(bytes, "UTF-8");
-        WritableMap params = Arguments.createMap();
-        params.putString("type", Definitions.onReadData);
-        params.putInt("id", deviceId);
-        params.putInt("portInterface", portInterface);
-        params.putString("data", data);
-        sendEvent(Definitions.serialPortEvent, params);
-      } catch (UnsupportedEncodingException e) {
-        e.printStackTrace();
-      }
+      String data = new String(bytes, StandardCharsets.UTF_8);
+      WritableMap params = Arguments.createMap();
+      params.putString("type", Definitions.onReadData);
+      params.putInt("id", deviceId);
+      params.putInt("portInterface", portInterface);
+      params.putString("data", data);
+      sendEvent(Definitions.serialPortEvent, params);
     }
   };
 
@@ -180,7 +176,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   }
 
   private byte[] StringToBytes(String message) {
-    return (byte[]) message.getBytes();
+    return (byte[]) message.getBytes(StandardCharsets.UTF_8);
   }
 
   private byte[] ArrayToBytes(ReadableArray message) {

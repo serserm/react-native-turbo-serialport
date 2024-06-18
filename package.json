@@ -7,7 +7,7 @@
     "packages/*",
     "examples/*"
   ],
-  "packageManager": "yarn@4.2.2",
+  "packageManager": "yarn@4.3.0",
   "engines": {
     "node": ">=18.0.0",
     "yarn": ">=4.0.0"

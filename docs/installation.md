@@ -43,9 +43,6 @@ initSerialport(config);      // ConfigType
 // ....
 
 const serialport = useSerialport({
-  // ParamsType
-  autoConnect: false,
-  // ...
   // events callback
   onError: ({errorCode, errorMessage}) => {},
   onReadData: ({id, portInterface, data}) => {},     // data: string

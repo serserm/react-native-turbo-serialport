@@ -39,7 +39,7 @@ public class SerialPortBuilder {
   private WriteThread writeThread;
   private Handler writeHandler;
   private boolean broadcastRegistered = false;
-  private boolean autoConnect = true;
+  private boolean autoConnect = false;
   private int mode = Definitions.MODE_ASYNC;
 
   private int DATA_BIT     = UsbSerialInterface.DATA_BITS_8;

@@ -272,6 +272,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
   @ReactMethod
   public void listDevices(Promise promise) {
+    builder.getSerialPorts();
     List<UsbDevice> usbDevices = builder.getPossibleSerialPorts();
     WritableArray deviceList = Arguments.createArray();
     if (usbDevices.size() != 0) {

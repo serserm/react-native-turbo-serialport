@@ -17,12 +17,12 @@ import {
 // this method is called once
 // but it is optional
 initSerialport({
-  autoConnect: false, // boolean (default true)
+  autoConnect: false, // boolean (default false)
   mode: 0, // Mode.ASYNC
   params: {
     driver: 'AUTO', // DriverType.AUTO
     portInterface: -1, // all ports (int number)
-    returnedDataType: 1, // ReturnedDataType.INTARRAY
+    returnedDataType: 3, // ReturnedDataType.UTF8
     baudRate: 9600, // (int number)
     dataBit: 8, // DataBit.DATA_BITS_8
     stopBit: 1, // StopBit.STOP_BITS_1

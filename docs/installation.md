@@ -34,21 +34,15 @@ import {
   Device,
 } from '@serserm/react-native-turbo-serialport';
 
-/** {
- *    autoConnect?: boolean; // true - default
- *    mode?: Mode;           // Mode.ASYC - default
- *    params?: ParamsType;
- *  }
- */
 // this method is called once
 // but it is optional
 initSerialport({
-  autoConnect: true,     // boolean
+  autoConnect: false,    // boolean
   mode: 0,               // Mode.ASYNC
-  params: {
+  params: {              // ParamsType
     driver: 'AUTO',      // DriverType.AUTO
     portInterface: -1,   // default all ports (int number)
-    returnedDataType: 1, // ReturnedDataType.INTARRAY
+    returnedDataType: 3, // ReturnedDataType.UTF8
     baudRate: 9600,      // BaudRate
     dataBit: 8,          // DataBit.DATA_BITS_8
     stopBit: 1,          // StopBit.STOP_BITS_1
@@ -120,7 +114,7 @@ function App() {
 |------------------|------------------|
 | driver           | AUTO             |
 | portInterface    | -1               |
-| returnedDataType | INTARRAY         |
+| returnedDataType | UTF8             |
 | baudRate         | 9600             |
 | dataBit          | DATA_BITS_8      |
 | stopBit          | STOP_BITS_1      |

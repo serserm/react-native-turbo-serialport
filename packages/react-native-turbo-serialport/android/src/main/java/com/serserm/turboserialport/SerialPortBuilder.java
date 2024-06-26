@@ -292,7 +292,7 @@ public class SerialPortBuilder {
     registerReceiver();
     List<UsbDevice> usbDevices = getPossibleSerialPorts();
     List<UsbDeviceStatus> devices = new ArrayList<>();
-    if (usbDevices.size() != 0) {
+    if (usbDevices.size() > 0) {
       for (UsbDevice device: usbDevices) {
         int deviceId = device.getDeviceId();
         if (serialStatusMap.get(deviceId) == null) {
@@ -420,7 +420,7 @@ public class SerialPortBuilder {
       return serialStatusMap.get(deviceId);
     }
     List<UsbDevice> usbDevices = getPossibleSerialPorts();
-    if (usbDevices.size() != 0) {
+    if (usbDevices.size() > 0) {
       UsbDevice usbDevice = usbDevices.get(0);
       return serialStatusMap.get((int) usbDevice.getDeviceId());
     }
@@ -526,9 +526,9 @@ public class SerialPortBuilder {
 
   public void write(int deviceId, int portInterface, byte[] bytes) {
     UsbDeviceStatus usbDeviceStatus = chooseDevice(deviceId);
-    if (usbDeviceStatus != null && usbDeviceStatus.isConnected()) {
+    if (usbDeviceStatus != null && usbDeviceStatus.isConnected() && usbDeviceStatus.serialDevices.size() > 0) {
       UsbSerialDevice usbSerialDevice = usbDeviceStatus.serialDevices.get(portInterface);
-      if (usbSerialDevice != null) {
+      if (usbSerialDevice != null && usbSerialDevice.isOpen()) {
         if (mode == Definitions.MODE_SYNC) {
           if (writeThread != null) {
             writeHandler.obtainMessage(0, deviceId, portInterface, bytes).sendToTarget();

@@ -12,25 +12,25 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
 
   useEffect(() => {
     serialport.current.startListening(
-      ({ type, id, portInterface, errorCode, errorMessage, data }) => {
+      ({ type, deviceId, portInterface, errorCode, errorMessage, data }) => {
         switch (type) {
           case 'onReadData':
-            params.onReadData?.({ id, portInterface, data });
+            params.onReadData?.({ deviceId, portInterface, data });
             break;
           case 'onError':
             params.onError?.({ errorCode, errorMessage });
             break;
           case 'onConnected':
-            params.onConnected?.({ id, portInterface });
+            params.onConnected?.({ deviceId, portInterface });
             break;
           case 'onDisconnected':
-            params.onDisconnected?.({ id, portInterface });
+            params.onDisconnected?.({ deviceId, portInterface });
             break;
           case 'onDeviceAttached':
-            params.onDeviceAttached?.({ id });
+            params.onDeviceAttached?.({ deviceId });
             break;
           case 'onDeviceDetached':
-            params.onDeviceDetached?.({ id });
+            params.onDeviceDetached?.({ deviceId });
             break;
         }
       },
@@ -65,20 +65,36 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
     return serialport.current.isServiceStarted();
   }
 
-  function writeBytes(message: Array<number>) {
-    return serialport.current.writeBytes(message);
+  function writeBytes(
+    message: Array<number>,
+    deviceId?: number,
+    portInterface?: number,
+  ) {
+    return serialport.current.writeBytes(message, deviceId, portInterface);
   }
 
-  function writeString(message: string) {
-    return serialport.current.writeString(message);
+  function writeString(
+    message: string,
+    deviceId?: number,
+    portInterface?: number,
+  ) {
+    return serialport.current.writeString(message, deviceId, portInterface);
   }
 
-  function writeBase64(message: string) {
-    return serialport.current.writeBase64(message);
+  function writeBase64(
+    message: string,
+    deviceId?: number,
+    portInterface?: number,
+  ) {
+    return serialport.current.writeBase64(message, deviceId, portInterface);
   }
 
-  function writeHexString(message: string) {
-    return serialport.current.writeHexString(message);
+  function writeHexString(
+    message: string,
+    deviceId?: number,
+    portInterface?: number,
+  ) {
+    return serialport.current.writeHexString(message, deviceId, portInterface);
   }
 
   return {

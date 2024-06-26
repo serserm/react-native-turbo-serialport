@@ -28,7 +28,7 @@ export class Serialport {
     } = params || {};
 
     TurboSerialport.setParams(
-      deviceId || -1,
+      deviceId ?? -1,
       driver,
       portInterface,
       returnedDataType,
@@ -58,15 +58,15 @@ export class Serialport {
   };
 
   connect = (deviceId?: number) => {
-    TurboSerialport.connect(deviceId || -1);
+    TurboSerialport.connect(deviceId ?? -1);
   };
 
   disconnect = (deviceId?: number) => {
-    TurboSerialport.disconnect(deviceId || -1);
+    TurboSerialport.disconnect(deviceId ?? -1);
   };
 
   isConnected = (deviceId?: number): Promise<boolean> => {
-    return TurboSerialport.isConnected(deviceId || -1);
+    return TurboSerialport.isConnected(deviceId ?? -1);
   };
 
   isServiceStarted = (): Promise<boolean> => {
@@ -78,7 +78,7 @@ export class Serialport {
     deviceId?: number,
     portInterface?: number,
   ) => {
-    TurboSerialport.writeBytes(deviceId || -1, portInterface || 0, message);
+    TurboSerialport.writeBytes(deviceId ?? -1, portInterface ?? 0, message);
   };
 
   writeString = (
@@ -86,7 +86,7 @@ export class Serialport {
     deviceId?: number,
     portInterface?: number,
   ) => {
-    TurboSerialport.writeString(deviceId || -1, portInterface || 0, message);
+    TurboSerialport.writeString(deviceId ?? -1, portInterface ?? 0, message);
   };
 
   writeBase64 = (
@@ -94,7 +94,7 @@ export class Serialport {
     deviceId?: number,
     portInterface?: number,
   ) => {
-    TurboSerialport.writeBase64(deviceId || -1, portInterface || 0, message);
+    TurboSerialport.writeBase64(deviceId ?? -1, portInterface ?? 0, message);
   };
 
   writeHexString = (
@@ -102,6 +102,6 @@ export class Serialport {
     deviceId?: number,
     portInterface?: number,
   ) => {
-    TurboSerialport.writeHexString(deviceId || -1, portInterface || 0, message);
+    TurboSerialport.writeHexString(deviceId ?? -1, portInterface ?? 0, message);
   };
 }

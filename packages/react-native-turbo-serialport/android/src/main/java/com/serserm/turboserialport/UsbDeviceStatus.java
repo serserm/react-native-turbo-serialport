@@ -11,7 +11,7 @@ import com.felhr.usbserial.UsbSerialDevice;
 import com.felhr.usbserial.UsbSerialInterface;
 
 public class UsbDeviceStatus {
-  private AtomicBoolean connect = new AtomicBoolean(true);
+  private AtomicBoolean connect = new AtomicBoolean(false);
   public final int deviceId;
   public final UsbDevice usbDevice;
   public List<UsbSerialDevice> serialDevices = new ArrayList<>();

@@ -22,6 +22,8 @@ npx expo install @serserm/react-native-turbo-serialport
 
 ## Usage
 
+>**Note**: [IDs are not persistent across USB disconnects.](https://developer.android.com/reference/android/hardware/usb/UsbDevice#getDeviceId())
+
 ```javascript
 import {
   intArrayToUtf16,
@@ -32,77 +34,87 @@ import {
   Device,
 } from '@serserm/react-native-turbo-serialport';
 
-/** {
- *    autoConnect?: boolean; // true - default
- *    mode?: Mode;           // ASYC - default
- *    params?: ParamsType;
- *  }
- */
-initSerialport(config);      // ConfigType
-
-// ....
-
-const serialport = useSerialport({
-  // events callback
-  onError: ({errorCode, errorMessage}) => {},
-  onReadData: ({id, portInterface, data}) => {},     // data: string
-  onConnected: ({id, portInterface}) => {},          // number
-  onDisconnected: ({id, portInterface}) => {},       // number
-  onDeviceAttached: ({id}) => {},                    // number
-  onDeviceDetached: ({id}) => {},                    // number
+// this method is called once
+// but it is optional
+initSerialport({
+  autoConnect: false,    // boolean
+  mode: 0,               // Mode.ASYNC
+  params: {              // ParamsType
+    driver: 'AUTO',      // DriverType.AUTO
+    portInterface: -1,   // default all ports (int number)
+    returnedDataType: 3, // ReturnedDataType.UTF8
+    baudRate: 9600,      // BaudRate
+    dataBit: 8,          // DataBit.DATA_BITS_8
+    stopBit: 1,          // StopBit.STOP_BITS_1
+    parity: 0,           // Parity.PARITY_NONE
+    flowControl: 0,      // FlowControl.FLOW_CONTROL_OFF
+  },
 });
 
-const {
-  setParams,                // (params: ParamsType, deviceId?: number) => void
-  listDevices,              // () => Promise<Array>
-  connect,                  // (deviceId?: number) => void
-  disconnect,               // (deviceId?: number) => void
-  isConnected,              // (deviceId?: number) => Promise<boolean>
-  isServiceStarted,         // () => Promise<boolean>
-  writeBytes,               // (message: Array<number>, deviceId?: number, portInterface?: number) => void
-  writeString,              // (message: string, deviceId?: number, portInterface?: number) => void
-  writeBase64,              // (message: string, deviceId?: number, portInterface?: number) => void
-  writeHexString,           // (message: string, deviceId?: number, portInterface?: number) => void
-} = serialport;
-
-useEffect(() => {
-  // example listDevices
-  serialport.listDevices().then(res => {
-    if (res.length) {
-      const {
-        isSupported,
-        deviceId,
-        deviceName,
-        deviceClass,
-        deviceSubclass,
-        deviceProtocol,
-        vendorId,
-        productId,
-        manufacturerName,
-        productName,
-        serialNumber,
-        interfaceCount,
-        setParams,          // (params: ParamsType) => void
-        connect,            // () => void
-        disconnect,         // () => void
-        isConnected,        // () => Promise<boolean>
-        writeBytes,         // (message: Array<number>, portInterface?: number) => void
-        writeString,        // (message: string, portInterface?: number) => void
-        writeBase64,        // (message: string, portInterface?: number) => void
-        writeHexString,     // (message: string, portInterface?: number) => void
-      } = res[0];           // Device
-    }
+function App() {
+  const serialport = useSerialport({
+    // events callback
+    onError: ({errorCode, errorMessage}) => {},
+    onReadData: ({deviceId, portInterface, data}) => {},     // data is depends on the returnedDataType
+    onConnected: ({deviceId, portInterface}) => {},          // number
+    onDisconnected: ({deviceId, portInterface}) => {},       // number
+    onDeviceAttached: ({deviceId}) => {},                    // number
+    onDeviceDetached: ({deviceId}) => {},                    // number
   });
-}, []);
+
+  const {
+    setParams,                // (params: ParamsType, deviceId?: number) => void
+    listDevices,              // () => Promise<Array>
+    connect,                  // (deviceId?: number) => void
+    disconnect,               // (deviceId?: number) => void
+    isConnected,              // (deviceId?: number) => Promise<boolean>
+    isServiceStarted,         // () => Promise<boolean>
+    writeBytes,               // (message: Array<number>, deviceId?: number, portInterface?: number) => void
+    writeString,              // (message: string, deviceId?: number, portInterface?: number) => void
+    writeBase64,              // (message: string, deviceId?: number, portInterface?: number) => void
+    writeHexString,           // (message: string, deviceId?: number, portInterface?: number) => void
+  } = serialport;
+
+  function onPressSearch() {
+    serialport.listDevices().then(res => {
+      res.forEach(device => {
+        const {
+          isSupported,
+          deviceId,
+          deviceName,
+          deviceClass,
+          deviceSubclass,
+          deviceProtocol,
+          vendorId,
+          productId,
+          manufacturerName,
+          productName,
+          serialNumber,
+          interfaceCount,
+          setParams,          // (params: ParamsType) => void
+          connect,            // () => void
+          disconnect,         // () => void
+          isConnected,        // () => Promise<boolean>
+          writeBytes,         // (message: Array<number>, portInterface?: number) => void
+          writeString,        // (message: string, portInterface?: number) => void
+          writeBase64,        // (message: string, portInterface?: number) => void
+          writeHexString,     // (message: string, portInterface?: number) => void
+        } = device;           // Device
+        // TODO
+      });
+    });
+  }
+
+  // ............
+}
 ```
 
 ### Default ParamsType
 | KEY              | VALUE            |
 |------------------|------------------|
 | driver           | AUTO             |
-| autoConnect      | true             |
 | portInterface    | -1               |
-| returnedDataType | INTARRAY         |
+| returnedDataType | UTF8             |
 | baudRate         | 9600             |
 | dataBit          | DATA_BITS_8      |
 | stopBit          | STOP_BITS_1      |

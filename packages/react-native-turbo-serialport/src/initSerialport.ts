@@ -25,8 +25,8 @@ export function initSerialport(consfig?: ConfigType) {
   } = params || {};
 
   TurboSerialport.init(
-    autoConnect || true,
-    mode || Mode.ASYNC,
+    autoConnect ?? false,
+    mode ?? Mode.ASYNC,
     driver,
     portInterface,
     returnedDataType,

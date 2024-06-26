@@ -25,17 +25,17 @@ export class Device {
 
   constructor(data: any) {
     this.#isSupported = data.isSupported ?? false;
-    this.#deviceId = data.deviceId || 0;
-    this.#deviceName = data.deviceName || '';
-    this.#deviceClass = data.deviceClass || 0;
-    this.#deviceSubclass = data.deviceSubclass || 0;
-    this.#deviceProtocol = data.deviceProtocol || 0;
-    this.#vendorId = data.vendorId || 0;
-    this.#productId = data.productId || 0;
-    this.#manufacturerName = data.manufacturerName || '';
-    this.#productName = data.productName || '';
-    this.#serialNumber = data.serialNumber || '';
-    this.#interfaceCount = data.interfaceCount || 0;
+    this.#deviceId = data.deviceId ?? 0;
+    this.#deviceName = data.deviceName ?? '';
+    this.#deviceClass = data.deviceClass ?? 0;
+    this.#deviceSubclass = data.deviceSubclass ?? 0;
+    this.#deviceProtocol = data.deviceProtocol ?? 0;
+    this.#vendorId = data.vendorId ?? 0;
+    this.#productId = data.productId ?? 0;
+    this.#manufacturerName = data.manufacturerName ?? '';
+    this.#productName = data.productName ?? '';
+    this.#serialNumber = data.serialNumber ?? '';
+    this.#interfaceCount = data.interfaceCount ?? 0;
   }
 
   get isSupported() {
@@ -113,18 +113,18 @@ export class Device {
   };
 
   writeBytes = (message: Array<number>, portInterface?: number) => {
-    TurboSerialport.writeBytes(this.#deviceId, portInterface || 0, message);
+    TurboSerialport.writeBytes(this.#deviceId, portInterface ?? 0, message);
   };
 
   writeString = (message: string, portInterface?: number) => {
-    TurboSerialport.writeString(this.#deviceId, portInterface || 0, message);
+    TurboSerialport.writeString(this.#deviceId, portInterface ?? 0, message);
   };
 
   writeBase64 = (message: string, portInterface?: number) => {
-    TurboSerialport.writeBase64(this.#deviceId, portInterface || 0, message);
+    TurboSerialport.writeBase64(this.#deviceId, portInterface ?? 0, message);
   };
 
   writeHexString = (message: string, portInterface?: number) => {
-    TurboSerialport.writeHexString(this.#deviceId, portInterface || 0, message);
+    TurboSerialport.writeHexString(this.#deviceId, portInterface ?? 0, message);
   };
 }

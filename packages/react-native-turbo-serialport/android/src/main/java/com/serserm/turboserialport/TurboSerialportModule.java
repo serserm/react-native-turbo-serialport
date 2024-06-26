@@ -69,7 +69,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
     public void onReadData(int deviceId, int portInterface, int returnedDataType, byte[] bytes) {
       WritableMap params = Arguments.createMap();
       params.putString("type", Definitions.onReadData);
-      params.putInt("id", deviceId);
+      params.putInt("deviceId", deviceId);
       params.putInt("portInterface", portInterface);
       switch (returnedDataType) {
         case Definitions.RETURNED_DATA_TYPE_INTARRAY: {
@@ -111,14 +111,14 @@ public class TurboSerialportModule extends TurboSerialportSpec {
   private void sendType(int deviceId, String type) {
     WritableMap params = Arguments.createMap();
     params.putString("type", type);
-    params.putInt("id", deviceId);
+    params.putInt("deviceId", deviceId);
     sendEvent(Definitions.serialPortEvent, params);
   }
 
   private void sendType(int deviceId, int portInterface, String type) {
     WritableMap params = Arguments.createMap();
     params.putString("type", type);
-    params.putInt("id", deviceId);
+    params.putInt("deviceId", deviceId);
     params.putInt("portInterface", portInterface);
     sendEvent(Definitions.serialPortEvent, params);
   }
@@ -272,6 +272,7 @@ public class TurboSerialportModule extends TurboSerialportSpec {
 
   @ReactMethod
   public void listDevices(Promise promise) {
+    builder.getSerialPorts();
     List<UsbDevice> usbDevices = builder.getPossibleSerialPorts();
     WritableArray deviceList = Arguments.createArray();
     if (usbDevices.size() != 0) {

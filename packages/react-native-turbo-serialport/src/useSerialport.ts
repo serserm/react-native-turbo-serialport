@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import { Serialport } from './Serialport';
-import type {
-  ParamsType,
-  SerialportParamsType,
-  UseSerialportType,
-} from './types';
+import type { SerialportParamsType, UseSerialportType } from './types';
 
 export function useSerialport(params: SerialportParamsType): UseSerialportType {
   const serialport = useRef<Serialport>(new Serialport());
@@ -41,72 +37,16 @@ export function useSerialport(params: SerialportParamsType): UseSerialportType {
     };
   }, []);
 
-  function setParams(params?: ParamsType, deviceId?: number) {
-    serialport.current.setParams(params, deviceId);
-  }
-
-  function listDevices() {
-    return serialport.current.listDevices();
-  }
-
-  function connect(deviceId?: number) {
-    serialport.current.connect(deviceId);
-  }
-
-  function disconnect(deviceId?: number) {
-    serialport.current.disconnect(deviceId);
-  }
-
-  function isConnected(deviceId?: number) {
-    return serialport.current.isConnected(deviceId);
-  }
-
-  function isServiceStarted() {
-    return serialport.current.isServiceStarted();
-  }
-
-  function writeBytes(
-    message: Array<number>,
-    deviceId?: number,
-    portInterface?: number,
-  ) {
-    return serialport.current.writeBytes(message, deviceId, portInterface);
-  }
-
-  function writeString(
-    message: string,
-    deviceId?: number,
-    portInterface?: number,
-  ) {
-    return serialport.current.writeString(message, deviceId, portInterface);
-  }
-
-  function writeBase64(
-    message: string,
-    deviceId?: number,
-    portInterface?: number,
-  ) {
-    return serialport.current.writeBase64(message, deviceId, portInterface);
-  }
-
-  function writeHexString(
-    message: string,
-    deviceId?: number,
-    portInterface?: number,
-  ) {
-    return serialport.current.writeHexString(message, deviceId, portInterface);
-  }
-
   return {
-    setParams,
-    listDevices,
-    connect,
-    disconnect,
-    isConnected,
-    isServiceStarted,
-    writeBytes,
-    writeString,
-    writeBase64,
-    writeHexString,
+    setParams: serialport.current.setParams,
+    listDevices: serialport.current.listDevices,
+    connect: serialport.current.connect,
+    disconnect: serialport.current.disconnect,
+    isConnected: serialport.current.isConnected,
+    isServiceStarted: serialport.current.isServiceStarted,
+    writeBytes: serialport.current.writeBytes,
+    writeString: serialport.current.writeString,
+    writeBase64: serialport.current.writeBase64,
+    writeHexString: serialport.current.writeHexString,
   };
 }

@@ -26,8 +26,13 @@ npx expo install @serserm/react-native-turbo-serialport
 
 ```javascript
 import {
-  intArrayToUtf16,
-  hexToUtf16,
+  DataBit,
+  DriverType,
+  FlowControl,
+  Mode,
+  Parity,
+  ReturnedDataType,
+  StopBit,
   initSerialport,
   useSerialport,
   Serialport,
@@ -38,16 +43,16 @@ import {
 // but it is optional
 initSerialport({
   autoConnect: false,    // boolean
-  mode: 0,               // Mode.ASYNC
-  params: {              // ParamsType
-    driver: 'AUTO',      // DriverType.AUTO
+  mode: Mode.ASYNC,
+  params: {
+    driver: DriverType.AUTO,
     portInterface: -1,   // default all ports (int number)
-    returnedDataType: 3, // ReturnedDataType.UTF8
+    returnedDataType: ReturnedDataType.UTF8,
     baudRate: 9600,      // BaudRate
-    dataBit: 8,          // DataBit.DATA_BITS_8
-    stopBit: 1,          // StopBit.STOP_BITS_1
-    parity: 0,           // Parity.PARITY_NONE
-    flowControl: 0,      // FlowControl.FLOW_CONTROL_OFF
+    dataBit: DataBit.DATA_BITS_8,
+    stopBit: StopBit.STOP_BITS_1,
+    parity: Parity.PARITY_NONE,
+    flowControl: FlowControl.FLOW_CONTROL_OFF,
   },
 });
 

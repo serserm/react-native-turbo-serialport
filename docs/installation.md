@@ -172,4 +172,4 @@ And create a filter file in android/app/src/main/res/xml/usb_device_filter.xml
 </resources>
 ```
 
-The vendor-id and product-id here have to be given in decimal, and can be retrieved using deviceList()
+The vendor-id and product-id here have to be given in decimal, and can be retrieved using listDevices()

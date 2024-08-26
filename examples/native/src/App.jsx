@@ -10,7 +10,14 @@ import {
 } from 'react-native';
 
 import {
+  DataBit,
+  DriverType,
+  FlowControl,
   initSerialport,
+  Mode,
+  Parity,
+  ReturnedDataType,
+  StopBit,
   useSerialport,
 } from '@serserm/react-native-turbo-serialport';
 
@@ -18,16 +25,16 @@ import {
 // but it is optional
 initSerialport({
   autoConnect: false, // boolean (default false)
-  mode: 0, // Mode.ASYNC
+  mode: Mode.ASYNC,
   params: {
-    driver: 'AUTO', // DriverType.AUTO
+    driver: DriverType.AUTO,
     portInterface: -1, // all ports (int number)
-    returnedDataType: 3, // ReturnedDataType.UTF8
+    returnedDataType: ReturnedDataType.UTF8,
     baudRate: 9600, // (int number)
-    dataBit: 8, // DataBit.DATA_BITS_8
-    stopBit: 1, // StopBit.STOP_BITS_1
-    parity: 0, // Parity.PARITY_NONE
-    flowControl: 0, // FlowControl.FLOW_CONTROL_OFF
+    dataBit: DataBit.DATA_BITS_8,
+    stopBit: StopBit.STOP_BITS_1,
+    parity: Parity.PARITY_NONE,
+    flowControl: FlowControl.FLOW_CONTROL_OFF,
   },
 });
 

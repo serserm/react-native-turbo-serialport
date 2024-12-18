@@ -106,7 +106,13 @@ dependencies {
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
-  implementation "com.github.felHR85:UsbSerial:6.1.0"
+  implementation('com.github.felHR85:UsbSerial:7ad6c9f6') {
+      artifact {
+          name = 'UsbSerial'
+          classifier = 'release'
+          type = 'aar'
+      }
+  }
 }
 
 if (isNewArchitectureEnabled()) {
